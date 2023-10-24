@@ -266,3 +266,4 @@ void updateAsteroids() {
             asteroids[i].speed = rand() % MAX_ASTEROID_SPEED;
         }
     }
+}

@@ -13,6 +13,8 @@ int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
 void asteroid_gen(uint32_t BitNumber, uint16_t position, uint16_t speed);
+void initAsteroids();
+void updateAsteroids();
 
 volatile uint32_t milliseconds;
 
@@ -241,4 +243,25 @@ void asteroid_gen(uint32_t BitNumber, int position, int speed){
 		}		
 		delay(50);
 		putImage(position,1,10,10,asteroid,0,0);
+}
+
+void initAsteroids() {
+    for (int i = 0; i < NUM_ASTEROIDS; i++) {
+        asteroids[i].x = rand() % SCREEN_WIDTH; // Random X position
+        asteroids[i].y = 0; // Start at the top of the screen
+        asteroids[i].speed = rand() % MAX_ASTEROID_SPEED; // Random speed
+    }
+}
+
+void updateAsteroids() {
+    for (int i = 0; i < NUM_ASTEROIDS; i++) {
+        asteroids[i].y += asteroids[i].speed;
+
+        // If asteroid goes off the screen, respawn it at the top
+        if (asteroids[i].y > SCREEN_HEIGHT) {
+            asteroids[i].x = rand() % SCREEN_WIDTH;
+            asteroids[i].y = 0;
+            asteroids[i].speed = rand() % MAX_ASTEROID_SPEED;
+        }
+    }
 }

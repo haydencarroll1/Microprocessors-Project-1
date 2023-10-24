@@ -213,38 +213,6 @@ void setupIO()
 	enablePullUp(GPIOA,8);
 }
 
-void asteroid_gen(uint32_t BitNumber, int position, int speed){
-
-	if ((vmoved) || (hmoved))
-		{
-			// only redraw if there has been some movement (reduces flicker)
-			fillRectangle(oldx,oldy,12,16,0);
-			oldx = x;
-			oldy = y;					
-			if (hmoved)
-			{
-				if (toggle)
-					putImage(x,y,12,16,rocket,hinverted,0);
-				else
-					putImage(x,y,12,16,rocket,hinverted,0);
-				
-				toggle = toggle ^ 1;
-			}
-			else
-			{
-				putImage(x,y,12,16,rocket,0,vinverted);
-			}
-			// Now check for an overlap by checking to see if ANY of the 4 corners of deco are within the target area
-			if (isInside(20,80,12,16,x,y) || isInside(20,80,12,16,x+12,y) || isInside(20,80,12,16,x,y+16) || isInside(20,80,12,16,x+12,y+16) )
-			{
-				// we could use this to display a crash message if the hit an
-				printTextX2("Crashed!", 10, 20, RGBToWord(0xff,0xff,0), 0);
-			}
-		}		
-		delay(50);
-		putImage(position,1,10,10,asteroid,0,0);
-}
-
 void initAsteroids() {
     for (int i = 0; i < NUM_ASTEROIDS; i++) {
         asteroids[i].x = rand() % SCREEN_WIDTH; // Random X position

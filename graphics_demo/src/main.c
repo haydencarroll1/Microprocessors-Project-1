@@ -1,5 +1,9 @@
 #include <stm32f031x6.h>
 #include "display.h"
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 160
+#define NUM_ASTEROIDS 200
+#define MAX_ASTEROID_SPEED 5
 void initClock(void);
 void initSysTick(void);
 void SysTick_Handler(void);
@@ -11,6 +15,15 @@ void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
 void asteroid_gen(uint32_t BitNumber, int position, int speed);
 
 volatile uint32_t milliseconds;
+
+struct Asteroid {
+    uint16_t x;
+    uint16_t y;
+    uint16_t speed;
+};
+
+// Declare an array to store asteroids
+struct Asteroid asteroids[NUM_ASTEROIDS];
 
 const uint16_t asteroid[]=
 {
@@ -213,4 +226,12 @@ void setupIO()
 void asteroid_gen(uint32_t BitNumber, int position, int speed){
 
 	putImage(position,1,10,10,asteroid,0,0);
+}
+
+void initAsteroids() {
+    for (int i = 0; i < NUM_ASTEROIDS; i++) {
+        asteroids[i].x = rand() % SCREEN_WIDTH; // Random X position
+        asteroids[i].y = 0; // Start at the top of the screen
+        asteroids[i].speed = rand() % MAX_ASTEROID_SPEED; // Random speed
+    }
 }

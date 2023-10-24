@@ -2,7 +2,7 @@
 #include "display.h"
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 160
-#define NUM_ASTEROIDS 200
+#define NUM_ASTEROIDS 10
 #define MAX_ASTEROID_SPEED 5
 void initClock(void);
 void initSysTick(void);
@@ -12,7 +12,6 @@ void setupIO();
 int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py);
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
-void asteroid_gen(uint32_t BitNumber, uint16_t position, uint16_t speed);
 void initAsteroids();
 void updateAsteroids();
 
@@ -50,9 +49,14 @@ int main()
 	initClock();
 	initSysTick();
 	setupIO();
-	putImage(20,80,10,10,asteroid,0,0);
+	initAsteroids();
 	while(1)
 	{
+		updateAsteroids();
+		for (int i = 0; i < NUM_ASTEROIDS; i++) {
+			fillRectangle(asteroids[i].x,asteroids[i].y+asteroids[i].speed,10,10,0);
+			putImage(asteroids[i].x,asteroids[i].y,10,10,asteroid,0,0);
+		}
 		hmoved = vmoved = 0;
 		hinverted = vinverted = 0;
 		if ((GPIOB->IDR & (1 << 4))==0) // right pressed
@@ -217,19 +221,20 @@ void initAsteroids() {
     for (int i = 0; i < NUM_ASTEROIDS; i++) {
         asteroids[i].x = rand() % SCREEN_WIDTH; // Random X position
         asteroids[i].y = 0; // Start at the top of the screen
-        asteroids[i].speed = rand() % MAX_ASTEROID_SPEED; // Random speed
+        asteroids[i].speed = 1; // Random speed
     }
 }
 
 void updateAsteroids() {
     for (int i = 0; i < NUM_ASTEROIDS; i++) {
-        asteroids[i].y += asteroids[i].speed;
+        asteroids[i].y -= asteroids[i].speed;
 
         // If asteroid goes off the screen, respawn it at the top
         if (asteroids[i].y > SCREEN_HEIGHT) {
             asteroids[i].x = rand() % SCREEN_WIDTH;
             asteroids[i].y = 0;
             asteroids[i].speed = rand() % MAX_ASTEROID_SPEED;
+			fillRectangle(asteroids[i].x,asteroids[i].y-asteroids[i].speed,10,10,0);
         }
     }
 }

@@ -1,9 +1,11 @@
 #include <stm32f031x6.h>
 #include "display.h"
+
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 160
 #define NUM_ASTEROIDS 10
 #define MAX_ASTEROID_SPEED 5
+
 void initClock(void);
 void initSysTick(void);
 void SysTick_Handler(void);
@@ -14,6 +16,9 @@ void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
 void initAsteroids();
 void updateAsteroids();
+void drawAsteroid(uint16_t x, uint16_t y);
+void clearAsteroid(uint16_t x, uint16_t y);
+
 
 volatile uint32_t milliseconds;
 
@@ -25,6 +30,16 @@ struct Asteroid {
 
 // Declare an array to store asteroids
 struct Asteroid asteroids[NUM_ASTEROIDS];
+
+// Function to draw an asteroid at a specific position
+void drawAsteroid(uint16_t x, uint16_t y) {
+    putImage(x, y, 10, 10, asteroid, 0, 0); // Adjust the size and image as needed
+}
+
+// Function to clear the area where an asteroid was previously drawn
+void clearAsteroid(uint16_t x, uint16_t y) {
+    fillRectangle(x, y, 10, 10, 0);
+}
 
 const uint16_t asteroid[]=
 {
@@ -215,6 +230,37 @@ void setupIO()
 	enablePullUp(GPIOB,5);
 	enablePullUp(GPIOA,11);
 	enablePullUp(GPIOA,8);
+}
+
+void asteroid_gen(uint32_t image, int position, int speed){
+
+	// only redraw if there has been some movement (reduces flicker)
+	fillRectangle(oldx,oldy,12,16,0);
+	oldx = x;
+	oldy = y;					
+	if (hmoved)
+	{
+		if (toggle)
+			putImage(x,y,12,16,rocket,hinverted,0);
+		else
+			putImage(x,y,12,16,rocket,hinverted,0);
+		
+		toggle = toggle ^ 1;
+	}
+	else
+	{
+		putImage(x,y,12,16,rocket,0,vinverted);
+	}
+	// Now check for an overlap by checking to see if ANY of the 4 corners of deco are within the target area
+	if (isInside(20,80,12,16,x,y) || isInside(20,80,12,16,x+12,y) || isInside(20,80,12,16,x,y+16) || isInside(20,80,12,16,x+12,y+16) )
+	{
+		// we could use this to display a crash message if the hit an
+		printTextX2("Crashed!", 10, 20, RGBToWord(0xff,0xff,0), 0);
+	}
+		delay(50);
+		putImage(position,1,10,10,asteroid,0,0);
+}
+
 }
 
 void initAsteroids() {

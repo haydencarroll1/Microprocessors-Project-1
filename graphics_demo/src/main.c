@@ -1,9 +1,14 @@
 #include <stm32f031x6.h>
+#include <stdlib.h>
 #include "display.h"
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 160
+<<<<<<< Updated upstream
 #define NUM_ASTEROIDS 10
+=======
+#define MAX_ASTEROIDS 10
+>>>>>>> Stashed changes
 #define MAX_ASTEROID_SPEED 5
 
 void initClock(void);
@@ -15,31 +20,21 @@ int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
 void initAsteroids();
-void updateAsteroids();
-void drawAsteroid(uint16_t x, uint16_t y);
-void clearAsteroid(uint16_t x, uint16_t y);
+uint16_t updateAsteroids(uint16_t number_of_asteroids, uint16_t counter);
+void drawAsteroids(uint16_t number_of_asteroids);
+void clearAsteroid(uint16_t x,uint16_t y);
 
 
 volatile uint32_t milliseconds;
 
-struct Asteroid {
+struct Asteroid{
     uint16_t x;
-    uint16_t y;
-    uint16_t speed;
+	uint16_t y;
+	uint16_t speed;
 };
 
 // Declare an array to store asteroids
-struct Asteroid asteroids[NUM_ASTEROIDS];
-
-// Function to draw an asteroid at a specific position
-void drawAsteroid(uint16_t x, uint16_t y) {
-    putImage(x, y, 10, 10, asteroid, 0, 0); // Adjust the size and image as needed
-}
-
-// Function to clear the area where an asteroid was previously drawn
-void clearAsteroid(uint16_t x, uint16_t y) {
-    fillRectangle(x, y, 10, 10, 0);
-}
+struct Asteroid asteroids[MAX_ASTEROIDS];
 
 const uint16_t asteroid[]=
 {
@@ -57,14 +52,23 @@ int main()
 	int toggle = 0;
 	int hmoved = 0;
 	int vmoved = 0;
-	uint16_t x = 50;
-	uint16_t y = 50;
-	uint16_t oldx = x;
-	uint16_t oldy = y;
+
+	uint16_t number_of_asteroids = 3;
+	uint16_t counter = 0;
+
+	uint16_t rocket_x = 50;
+	uint16_t rocket_y = 50;
+	uint16_t old_rocket_x = rocket_x;
+	uint16_t old_rocket_y = rocket_y;
+
 	initClock();
 	initSysTick();
 	setupIO();
 	initAsteroids();
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 	while(1)
 	{
 		updateAsteroids();
@@ -74,11 +78,21 @@ int main()
 		}
 		hmoved = vmoved = 0;
 		hinverted = vinverted = 0;
+
+		drawAsteroids(number_of_asteroids);
+		counter = updateAsteroids(number_of_asteroids, counter);
+
+		// This is a potential way to increase amount of asteroids after 3 cycles of asteroids
+		// if ((counter / number_of_asteroids) > 3 && number_of_asteroids < MAX_ASTEROIDS)
+		// {
+		// 	number_of_asteroids++;
+		// }
+
 		if ((GPIOB->IDR & (1 << 4))==0) // right pressed
 		{					
-			if (x < 110)
+			if (rocket_x < 110)
 			{
-				x = x + 1;
+				rocket_x++;
 				hmoved = 1;
 				hinverted=0;
 			}						
@@ -86,59 +100,59 @@ int main()
 		if ((GPIOB->IDR & (1 << 5))==0) // left pressed
 		{			
 			
-			if (x > 10)
+			if (rocket_x > 10)
 			{
-				x = x - 1;
+				rocket_x--;
 				hmoved = 1;
 				hinverted=0;
 			}			
 		}
 		if ( (GPIOA->IDR & (1 << 11)) == 0) // down pressed
 		{
-			if (y < 140)
+			if (rocket_y < 140)
 			{
-				y = y + 1;			
+				rocket_y++;			
 				vmoved = 1;
 				vinverted = 0;
 			}
 		}
 		if ( (GPIOA->IDR & (1 << 8)) == 0) // up pressed
 		{			
-			if (y > 16)
+			if (rocket_y > 16)
 			{
-				y = y - 1;
+				rocket_y--;
 				vmoved = 1;
 				vinverted = 0;
 			}
 		}
-		if ((vmoved) || (hmoved))
+
+		fillRectangle(old_rocket_x,old_rocket_y,12,16,0);
+		old_rocket_x = rocket_x;
+		old_rocket_y = rocket_y;					
+		if (hmoved)
 		{
-			// only redraw if there has been some movement (reduces flicker)
-			fillRectangle(oldx,oldy,12,16,0);
-			oldx = x;
-			oldy = y;					
-			if (hmoved)
-			{
-				if (toggle)
-					putImage(x,y,12,16,rocket,hinverted,0);
-				else
-					putImage(x,y,12,16,rocket,hinverted,0);
-				
-				toggle = toggle ^ 1;
-			}
+			if (toggle)
+				putImage(rocket_x,rocket_y,12,16,rocket,hinverted,0);
 			else
-			{
-				putImage(x,y,12,16,rocket,0,vinverted);
-			}
-			// Now check for an overlap by checking to see if ANY of the 4 corners of deco are within the target area
-			if (isInside(20,80,12,16,x,y) || isInside(20,80,12,16,x+12,y) || isInside(20,80,12,16,x,y+16) || isInside(20,80,12,16,x+12,y+16) )
-			{
-				// we could use this to display a crash message if the hit an
-				printTextX2("Crashed!", 10, 20, RGBToWord(0xff,0xff,0), 0);
-			}
-		}		
+				putImage(rocket_x,rocket_y,12,16,rocket,hinverted,0);
+			
+			toggle = toggle ^ 1;
+		}
+		else
+		{
+			putImage(rocket_x,rocket_y,12,16,rocket,0,vinverted);
+		}
+		// Now check for an overlap by checking to see if ANY of the 4 corners of deco are within the target area
+		// if (isInside(asteroid_x,asteroid_y,10,10,rocket_x,rocket_y) || isInside(asteroid_x,asteroid_y,10,10,rocket_x+12,rocket_y) || isInside(asteroid_x,asteroid_y,10,10,rocket_x,rocket_y+16) || isInside(asteroid_x,asteroid_y,10,10,rocket_x+12,rocket_y+16) )
+		// {
+		// 	// we could use this to display a crash message if the hit an
+		// 	printTextX2("Crashed!", 10, 20, RGBToWord(0xff,0xff,0), 0);
+		// 	break;
+		// }
+		
 		delay(50);
 	}
+	printText("You have lost press any button to restart!", 40, 20, RGBToWord(0xff,0xff,0), 0);
 	return 0;
 }
 void initSysTick(void)
@@ -232,6 +246,7 @@ void setupIO()
 	enablePullUp(GPIOA,8);
 }
 
+<<<<<<< Updated upstream
 void asteroid_gen(uint32_t image, int position, int speed){
 
 	// only redraw if there has been some movement (reduces flicker)
@@ -263,10 +278,13 @@ void asteroid_gen(uint32_t image, int position, int speed){
 
 }
 
+=======
+>>>>>>> Stashed changes
 void initAsteroids() {
-    for (int i = 0; i < NUM_ASTEROIDS; i++) {
-        asteroids[i].x = rand() % SCREEN_WIDTH; // Random X position
+    for (int i = 0; i < MAX_ASTEROIDS; i++) {
+        asteroids[i].x = rand() % 155; // Random X position
         asteroids[i].y = 0; // Start at the top of the screen
+<<<<<<< Updated upstream
         asteroids[i].speed = 1; // Random speed
     }
 }
@@ -281,6 +299,40 @@ void updateAsteroids() {
             asteroids[i].y = 0;
             asteroids[i].speed = rand() % MAX_ASTEROID_SPEED;
 			fillRectangle(asteroids[i].x,asteroids[i].y-asteroids[i].speed,10,10,0);
+=======
+        asteroids[i].speed = 1; 
+    }
+}
+
+uint16_t updateAsteroids(uint16_t number_of_asteroids, uint16_t counter) {
+    for (int i = 0; i < number_of_asteroids; i++) {
+        asteroids[i].y += asteroids[i].speed;
+
+        // If asteroid goes off the screen, respawn it at the top
+        if (asteroids[i].y > 150) {
+			counter += 1;
+			fillRectangle(asteroids[i].x, asteroids[i].y - asteroids[i].speed, 10, 10, 0);
+			asteroids[i].x = rand() % 100;
+			asteroids[i].y = 0;
+			if(asteroids[i].speed < 10)
+			{
+				asteroids[i].speed += 1;
+			}
+>>>>>>> Stashed changes
         }
     }
+	return counter;
+}
+
+// Function to draw an asteroid at a specific position
+void drawAsteroids(uint16_t number_of_asteroids) {
+	for(int i = 0; i < number_of_asteroids; i++){
+		clearAsteroid(asteroids[i].x, asteroids[i].y - asteroids[i].speed);
+		putImage(asteroids[i].x, asteroids[i].y, 10, 10, asteroid, 0, 0); // Adjust the size and image as needed
+	}
+}
+
+// Function to clear the area where an asteroid was previously drawn
+void clearAsteroid(uint16_t x, uint16_t y) {
+    fillRectangle(x, y, 10, 10, 0);
 }

@@ -17,6 +17,9 @@ void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
 void asteroid_gen(uint32_t BitNumber, uint16_t position, uint16_t speed);
 void initAsteroids();
 void updateAsteroids();
+void drawAsteroid(uint16_t x, uint16_t y);
+void clearAsteroid(uint16_t x, uint16_t y);
+
 
 volatile uint32_t milliseconds;
 
@@ -29,6 +32,15 @@ struct Asteroid {
 // Declare an array to store asteroids
 struct Asteroid asteroids[NUM_ASTEROIDS];
 
+// Function to draw an asteroid at a specific position
+void drawAsteroid(uint16_t x, uint16_t y) {
+    putImage(x, y, 10, 10, asteroid, 0, 0); // Adjust the size and image as needed
+}
+
+// Function to clear the area where an asteroid was previously drawn
+void clearAsteroid(uint16_t x, uint16_t y) {
+    fillRectangle(x, y, 10, 10, 0);
+}
 
 const uint16_t asteroid[]=
 {

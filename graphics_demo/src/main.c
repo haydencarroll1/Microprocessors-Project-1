@@ -45,8 +45,12 @@ const uint16_t rocket[]=
 
 int main()
 {
+	initClock();
+	initSysTick();
+	setupIO();
 	while(1)
 	{
+		clear();
 		int hinverted = 0;
 		int vinverted = 0;
 		int toggle = 0;
@@ -63,9 +67,6 @@ int main()
 		uint16_t old_rocket_x = rocket_x;
 		uint16_t old_rocket_y = rocket_y;
 
-		initClock();
-		initSysTick();
-		setupIO();
 		initAsteroids();
 
 		while(game_running == true)
@@ -139,7 +140,7 @@ int main()
 
 			for(int i = 0; i < number_of_asteroids; i++)
 			{
-				if (isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+12,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y+16) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+12,rocket_y+16) )
+				if (isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y+14) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y+14) )
 				{
 					// we could use this to display a crash message if the hit an
 					// printTextX2("Crashed!", 10, 20, RGBToWord(0xff,0xff,0), 0);
@@ -147,12 +148,12 @@ int main()
 					printText("You have crashed!", 5, 5, RGBToWord(0xff,0xff,0), 0);
 					printText("press any button", 5, 25, RGBToWord(0xff,0xff,0), 0);
 					printText("to restart!", 5, 35, RGBToWord(0xff,0xff,0), 0);
-
+					delay(200);
 					game_running = false;					
 					break;
 				}
 			}
-			delay(50);
+			delay(35);
 		}
 		while(game_running == false)
 		{
@@ -257,7 +258,7 @@ void setupIO()
 
 void initAsteroids() {
     for (int i = 0; i < MAX_ASTEROIDS; i++) {
-        asteroids[i].x = rand() % 155; // Random X position
+        asteroids[i].x = (rand() %13) * 10; // Random X position
         asteroids[i].y = 0; // Start at the top of the screen
         asteroids[i].speed = 1; 
     }
@@ -271,7 +272,7 @@ uint16_t updateAsteroids(uint16_t number_of_asteroids, uint16_t counter) {
         if (asteroids[i].y > 150) {
 			counter += 1;
 			fillRectangle(asteroids[i].x, asteroids[i].y - asteroids[i].speed, 10, 10, 0);
-			asteroids[i].x = rand() % 100;
+			asteroids[i].x = (rand() %14) * 10;
 			asteroids[i].y = 0;
 			if(asteroids[i].speed < 10)
 			{

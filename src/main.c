@@ -1,3 +1,5 @@
+// 
+
 #include <stm32f031x6.h>
 #include <stdbool.h>
 #include "display.h"
@@ -188,14 +190,13 @@ void updateAsteroids() {
 			printNumber(score, 5, 5, BLUE, 0);
 			fillRectangle(asteroids[i].x, asteroids[i].y - asteroids[i].speed, 10, 10, 0);
 			asteroids[i].x = 5 + (random(1,10) * 12);
-			// for(int j = 0; j < number_of_asteroids; j++)
-			// {
-			// 	if(asteroids[i].x == asteroids[j].x)
-			// 	{
-			// 		asteroids[i].x = 5 + (random(1,10) * 12);
-			// 		j = 0;
-			// 	}
-			// }
+			for(int j = 0; j < number_of_asteroids; j++)
+			{
+				if(asteroids[i].x == asteroids[j].x)
+				{
+					asteroids[i].x = 5 + (random(1,10) * 12);
+				}
+			}
 			asteroids[i].y = 0;
 			if(asteroids[i].speed < MAX_ASTEROID_SPEED && random(1,2) == 1)
 			{

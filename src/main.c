@@ -98,7 +98,7 @@ int main()
 			{					
 				if (rocket_x < 110)
 				{
-					rocket_x++;
+					rocket_x += 2;
 					hmoved = 1;
 				}						
 			}
@@ -107,7 +107,7 @@ int main()
 				
 				if (rocket_x > 10)
 				{
-					rocket_x--;
+					rocket_x -= 2;
 					hmoved = 1;
 				}			
 			}
@@ -121,7 +121,7 @@ int main()
 			}
 			if ( (GPIOA->IDR & (1 << 8)) == 0) // up pressed
 			{			
-				if (rocket_y > 16)
+				if (rocket_y > 55)
 				{
 					rocket_y--;
 					vmoved = 1;
@@ -153,7 +153,7 @@ int main()
 					break;
 				}
 			}
-			delay(50);
+			delay(35);
 		}
 		while(game_running == false)
 		{

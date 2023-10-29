@@ -237,10 +237,10 @@ void menu(){
 	while(1){
 		counter++;
 		if(counter < 50){
-			printText("Press < or >", 20, 100, ORANGE, 0);
+			printText("Press < or >", 23, 100, ORANGE, 0);
 		}
 		else if(counter<80){
-			fillRectangle(5, 100, 100, 10, 0);
+			fillRectangle(15, 100, 100, 10, 0);
 		}
 		else{
 			counter = 0;
@@ -268,12 +268,12 @@ void menu_crashed(uint16_t rocket_x, uint16_t rocket_y)
 	printNumber(score, 88, 45, BLUE, 0);
 	delay(2000);
 	fillRectangle(rocket_x, rocket_y, 12, 12, 0);
-	printText("To Restart", 25, 80, YELLOW, 0);
+	printText("To Restart", 28, 80, YELLOW, 0);
 	int counter = 0;
 	while(1){
 		counter++;
 		if(counter < 50){
-			printText("Press < or >", 20, 65, ORANGE, 0);
+			printText("Press < or >", 23, 65, ORANGE, 0);
 		}
 		else if(counter<80){
 			fillRectangle(20, 65, 100, 10, 0);
@@ -297,18 +297,19 @@ void countdown()
 	for(int i = 0; i < 4; i++){
 		if(i == 0)
 		{
-			printTextX2("3", 55, 40, RED, 0);
+			printTextX2("3", 58, 40, RED, 0);
 		}
 		else if(i == 1)
 		{
-			printTextX2("2", 55, 40, RED, 0);
+			printTextX2("2", 58, 40, RED, 0);
 		}
 		else if(i == 2)
 		{
-			printTextX2("1", 55, 40, RED, 0);
+			printTextX2("1", 58, 40, RED, 0);
 		}
 		else if(i == 3)
 		{
+			clear();
 			printTextX2("DODGE!", 30, 40, RED, 0);
 		}
 		delay(1000);

@@ -86,8 +86,8 @@ int main()
 			drawAsteroids();
 			updateAsteroids();
 
-			// This is a potential way to increase amount of asteroids after 3 cycles of asteroids
-			if(score > (previous_score*2) && number_of_asteroids < MAX_ASTEROIDS)
+			// This is a way to increase amount of asteroids after score reaches certain points
+			if(score > (previous_score*3) && number_of_asteroids < MAX_ASTEROIDS)
 			{
 				number_of_asteroids++;
 				previous_score = score;

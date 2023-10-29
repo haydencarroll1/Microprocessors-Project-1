@@ -1,8 +1,9 @@
 #include <stm32f031x6.h>
-//#include <stdlib.h>
 #include <stdbool.h>
 #include "display.h"
 #include <prbs.c>
+#include <sound.h>
+#include <sound.c>
 
 #define MAX_ASTEROIDS 10
 #define MAX_ASTEROID_SPEED 5
@@ -66,7 +67,7 @@ int main()
 
 		bool game_running = true;
 
-		number_of_asteroids = 2;
+		number_of_asteroids = 1;
 		uint16_t counter = 0;
 
 		uint16_t rocket_x = 50;
@@ -152,6 +153,7 @@ int main()
 					// we could use this to display a crash message if the hit an
 					// printTextX2("Crashed!", 10, 20, RGBToWord(0xff,0xff,0), 0);
 					clear();
+					playNote(4000);
 					putImage(rocket_x,rocket_y,12,12,explosion,0,0);
 					printText("You have crashed!", 5, 5, RGBToWord(0xff,0xff,0), 0);
 					delay(2000);
@@ -265,13 +267,21 @@ void setupIO()
 void initAsteroids() {
     for (int i = 0; i < MAX_ASTEROIDS; i++) {
         asteroids[i].x = 5 + random(1,10) * 12; // Random X position
+		for(int j; j < number_of_asteroids; j++)
+		{
+			if(asteroids[i].x == asteroids[j].x)
+			{
+				asteroids[i].x = 5 + (random(1,10) * 12);
+				j = 0;
+			}
+		}
         asteroids[i].y = 0; // Start at the top of the screen
         asteroids[i].speed = 1; 
     }
 }
 
 uint16_t updateAsteroids(uint16_t counter) {
-	uint32_t random_number = random(1,3);
+	uint32_t random_number = random(1,5);
     for (int i = 0; i < number_of_asteroids; i++) {
         asteroids[i].y += asteroids[i].speed;
 
@@ -279,7 +289,15 @@ uint16_t updateAsteroids(uint16_t counter) {
         if (asteroids[i].y > 150) {
 			counter += 1;
 			fillRectangle(asteroids[i].x, asteroids[i].y - asteroids[i].speed, 10, 10, 0);
-			asteroids[i].x = 5 + (rand() %10) * 12;
+			asteroids[i].x = 5 + (random(1,10) * 12);
+			for(int j; j < number_of_asteroids; j++)
+			{
+				if(asteroids[i].x == asteroids[j].x)
+				{
+					asteroids[i].x = 5 + (random(1,10) * 12);
+					j = 0;
+				}
+			}
 			asteroids[i].y = 0;
 			if(asteroids[i].speed < MAX_ASTEROID_SPEED && random_number == 1)
 			{

@@ -145,7 +145,7 @@ int main()
 
 			for(int i = 0; i < number_of_asteroids; i++)
 			{
-				if(isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y+12) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y+12) )
+				if(isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y+10) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y+10) )
 				{
 					game_running = false;					
 					break;

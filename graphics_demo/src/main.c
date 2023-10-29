@@ -6,8 +6,15 @@
 #include <serial.c>
 #include <setup.c>
 
-#define MAX_ASTEROIDS 5
-#define MAX_ASTEROID_SPEED 6
+#define MAX_ASTEROIDS 6
+#define MAX_ASTEROID_SPEED 4
+
+#define YELLOW RGBToWord(246, 235, 20)
+#define GREEN RGBToWord(79, 175, 68)
+#define ORANGE RGBToWord(255, 149, 38)
+#define RED RGBToWord(239, 68, 35)
+#define BLUE RGBToWord(42, 52, 146)
+
 
 void initAsteroids();
 void updateAsteroids();
@@ -138,7 +145,7 @@ int main()
 
 			for(int i = 0; i < number_of_asteroids; i++)
 			{
-				if(isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y+14) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y+14) )
+				if(isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y+12) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y+12) )
 				{
 					game_running = false;					
 					break;
@@ -178,7 +185,7 @@ void updateAsteroids() {
         // If asteroid goes off the screen, respawn it at the top
         if (asteroids[i].y > 150) {
 			score++;
-			printNumber(score, 5, 5, RGBToWord(0xff,0xff,0), 0);
+			printNumber(score, 5, 5, BLUE, 0);
 			fillRectangle(asteroids[i].x, asteroids[i].y - asteroids[i].speed, 10, 10, 0);
 			asteroids[i].x = 5 + (random(1,10) * 12);
 			// for(int j = 0; j < number_of_asteroids; j++)
@@ -203,7 +210,7 @@ void drawAsteroids() {
 	for(int i = 0; i < number_of_asteroids; i++){
 		clearAsteroid(asteroids[i].x, asteroids[i].y - asteroids[i].speed);
 		putImage(asteroids[i].x, asteroids[i].y, 10, 10, asteroid, 0, 0); // Adjust the size and image as needed
-		printNumber(score, 5, 5, RGBToWord(0xff,0xff,0), 0);
+		printNumber(score, 5, 5, BLUE, 0);
 	}
 }
 
@@ -219,15 +226,15 @@ void clearAsteroids() {
 }
 
 void menu(){
-	printTextX2("Welcome to", 5, 5, RGBToWord(0xff,0xff,0), 0);
-	printTextX2("Space", 30, 30, RGBToWord(0xff,0xff,0), 0);
-	printTextX2("Dodger", 25, 50, RGBToWord(0xff,0xff,0), 0);
-	printText("Dodge the Meteors", 5, 80, RGBToWord(0xff,0xff,0), 0);
+	printTextX2("Welcome to", 5, 5, YELLOW, 0);
+	printTextX2("Space", 30, 30, YELLOW, 0);
+	printTextX2("Dodger", 25, 50, YELLOW, 0);
+	printText("Dodge the Meteors", 5, 80, RED, 0);
 	int counter = 0;
 	while(1){
 		counter++;
 		if(counter < 50){
-			printText("Press < or >", 20, 100, RGBToWord(0xff,0xff,0), 0);
+			printText("Press < or >", 20, 100, ORANGE, 0);
 		}
 		else if(counter<80){
 			fillRectangle(5, 100, 100, 10, 0);
@@ -252,18 +259,18 @@ void menu_crashed(uint16_t rocket_x, uint16_t rocket_y)
 	putImage(rocket_x,rocket_y,12,12,explosion,0,0);
 	playNote(G7);
 	delay(1000);
-	printTextX2("You have", 15, 5, RGBToWord(0xff,0xff,0), 0);
-	printTextX2("CRASHED", 20, 25, RGBToWord(0xff,0xff,0), 0);
-	printText("Final score:", 5, 45, RGBToWord(0xff,0xff,0), 0);
-	printNumber(score, 88, 45, RGBToWord(0xff,0xff,0), 0);
+	printTextX2("You have", 15, 5, YELLOW, 0);
+	printTextX2("CRASHED", 20, 25, RED, 0);
+	printText("Final score:", 5, 45, BLUE, 0);
+	printNumber(score, 88, 45, BLUE, 0);
 	delay(2000);
 	fillRectangle(rocket_x, rocket_y, 12, 12, 0);
-	printText("To Restart", 25, 80, RGBToWord(0xff,0xff,0), 0);
+	printText("To Restart", 25, 80, YELLOW, 0);
 	int counter = 0;
 	while(1){
 		counter++;
 		if(counter < 50){
-			printText("Press < or >", 20, 65, RGBToWord(0xff,0xff,0), 0);
+			printText("Press < or >", 20, 65, ORANGE, 0);
 		}
 		else if(counter<80){
 			fillRectangle(20, 65, 100, 10, 0);
@@ -287,19 +294,19 @@ void countdown()
 	for(int i = 0; i < 4; i++){
 		if(i == 0)
 		{
-			printTextX2("3", 55, 40, RGBToWord(0xff,0xff,0), 0);
+			printTextX2("3", 55, 40, RED, 0);
 		}
 		else if(i == 1)
 		{
-			printTextX2("2", 55, 40, RGBToWord(0xff,0xff,0), 0);
+			printTextX2("2", 55, 40, RED, 0);
 		}
 		else if(i == 2)
 		{
-			printTextX2("1", 55, 40, RGBToWord(0xff,0xff,0), 0);
+			printTextX2("1", 55, 40, RED, 0);
 		}
 		else if(i == 3)
 		{
-			printTextX2("DODGE!", 30, 40, RGBToWord(0xff,0xff,0), 0);
+			printTextX2("DODGE!", 30, 40, RED, 0);
 		}
 		delay(1000);
 	}

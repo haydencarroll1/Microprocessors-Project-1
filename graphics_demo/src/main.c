@@ -2,28 +2,19 @@
 #include <stdbool.h>
 #include "display.h"
 #include <prbs.c>
-#include <sound.h>
 #include <sound.c>
+#include <serial.c>
+#include <setup.c>
 
 #define MAX_ASTEROIDS 10
 #define MAX_ASTEROID_SPEED 5
 
-void initClock(void);
-void initSysTick(void);
-void SysTick_Handler(void);
-void delay(volatile uint32_t dly);
-void setupIO();
-int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py);
-void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
-void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
 void initAsteroids();
 uint16_t updateAsteroids(uint16_t counter);
 void drawAsteroids();
 void clearAsteroid(uint16_t x,uint16_t y);
 void clearAsteroids();
 void menu();
-
-volatile uint32_t milliseconds;
 
 struct Asteroid{
     uint16_t x;
@@ -47,7 +38,6 @@ const uint16_t explosion[]=
 	0,0,57091,0,0,0,0,0,0,40707,0,0,0,0,40707,40707,14602,31490,0,7683,56835,0,0,0,48899,40707,0,0,6161,22553,0,56593,23555,0,0,40707,48899,40707,55818,47626,30752,38432,5409,31520,31264,0,24323,57091,0,7427,63505,46112,30240,30496,22560,30752,15136,31257,40451,57091,48899,47122,22801,54816,38432,30240,30240,37664,46368,23065,6922,40707,55818,7435,46873,37920,30752,38176,38176,37664,30496,62752,38169,7435,40707,6923,22802,5401,38432,30496,37920,29984,38688,5913,37408,47378,0,0,7427,7698,55840,46880,30496,55840,62744,54809,0,45600,0,0,48899,40707,15890,32281,31264,23065,39186,30994,0,0,0,0,48899,57091,32515,0,7939,63762,5906,55818,57091,0,0,0,48899,32515,0,0,57091,40707,48899,0,0,0,
 };
 
-
 uint16_t number_of_asteroids;
 
 int main()
@@ -59,8 +49,6 @@ int main()
 	while(1)
 	{
 		clear();
-		int hinverted = 0;
-		int vinverted = 0;
 		int toggle = 0;
 		int hmoved = 0;
 		int vmoved = 0;
@@ -80,7 +68,6 @@ int main()
 		while(game_running == true)
 		{
 			hmoved = vmoved = 0;
-			hinverted = vinverted = 0;
 
 			drawAsteroids();
 			counter = updateAsteroids(counter);
@@ -97,7 +84,6 @@ int main()
 				{
 					rocket_x++;
 					hmoved = 1;
-					hinverted=0;
 				}						
 			}
 			if ((GPIOB->IDR & (1 << 5))==0) // left pressed
@@ -107,7 +93,6 @@ int main()
 				{
 					rocket_x--;
 					hmoved = 1;
-					hinverted=0;
 				}			
 			}
 			if ( (GPIOA->IDR & (1 << 11)) == 0) // down pressed
@@ -116,7 +101,6 @@ int main()
 				{
 					rocket_y++;			
 					vmoved = 1;
-					vinverted = 0;
 				}
 			}
 			if ( (GPIOA->IDR & (1 << 8)) == 0) // up pressed
@@ -125,7 +109,6 @@ int main()
 				{
 					rocket_y--;
 					vmoved = 1;
-					vinverted = 0;
 				}
 			}
 
@@ -135,26 +118,27 @@ int main()
 			if (hmoved)
 			{
 				if (toggle)
-					putImage(rocket_x,rocket_y,12,16,rocket,hinverted,0);
+					putImage(rocket_x,rocket_y,12,16,rocket,0,0);
 				else
-					putImage(rocket_x,rocket_y,12,16,rocket,hinverted,0);
+					putImage(rocket_x,rocket_y,12,16,rocket,0,0);
 				
 				toggle = toggle ^ 1;
 			}
 			else
 			{
-				putImage(rocket_x,rocket_y,12,16,rocket,0,vinverted);
+				putImage(rocket_x,rocket_y,12,16,rocket,0,0);
 			}
 
 			for(int i = 0; i < number_of_asteroids; i++)
 			{
-				if (isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y))
+				if(isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y+14) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y+14) )
 				{
 					// we could use this to display a crash message if the hit an
 					// printTextX2("Crashed!", 10, 20, RGBToWord(0xff,0xff,0), 0);
 					clear();
-					playNote(4000);
 					putImage(rocket_x,rocket_y,12,12,explosion,0,0);
+					playNote(G7);
+					delay(1000);
 					printText("You have crashed!", 5, 5, RGBToWord(0xff,0xff,0), 0);
 					delay(2000);
 					printText("press any button", 5, 25, RGBToWord(0xff,0xff,0), 0);
@@ -174,94 +158,6 @@ int main()
 		}
 	}
 	return 0;
-}
-void initSysTick(void)
-{
-	SysTick->LOAD = 48000;
-	SysTick->CTRL = 7;
-	SysTick->VAL = 10;
-	__asm(" cpsie i "); // enable interrupts
-}
-void SysTick_Handler(void)
-{
-	milliseconds++;
-}
-void initClock(void)
-{
-// This is potentially a dangerous function as it could
-// result in a system with an invalid clock signal - result: a stuck system
-        // Set the PLL up
-        // First ensure PLL is disabled
-        RCC->CR &= ~(1u<<24);
-        while( (RCC->CR & (1 <<25))); // wait for PLL ready to be cleared
-        
-// Warning here: if system clock is greater than 24MHz then wait-state(s) need to be
-// inserted into Flash memory interface
-				
-        FLASH->ACR |= (1 << 0);
-        FLASH->ACR &=~((1u << 2) | (1u<<1));
-        // Turn on FLASH prefetch buffer
-        FLASH->ACR |= (1 << 4);
-        // set PLL multiplier to 12 (yielding 48MHz)
-        RCC->CFGR &= ~((1u<<21) | (1u<<20) | (1u<<19) | (1u<<18));
-        RCC->CFGR |= ((1<<21) | (1<<19) ); 
-
-        // Need to limit ADC clock to below 14MHz so will change ADC prescaler to 4
-        RCC->CFGR |= (1<<14);
-
-        // and turn the PLL back on again
-        RCC->CR |= (1<<24);        
-        // set PLL as system clock source 
-        RCC->CFGR |= (1<<1);
-}
-void delay(volatile uint32_t dly)
-{
-	uint32_t end_time = dly + milliseconds;
-	while(milliseconds != end_time)
-		__asm(" wfi "); // sleep
-}
-
-void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber)
-{
-	Port->PUPDR = Port->PUPDR &~(3u << BitNumber*2); // clear pull-up resistor bits
-	Port->PUPDR = Port->PUPDR | (1u << BitNumber*2); // set pull-up bit
-}
-void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode)
-{
-	uint32_t mode_value = Port->MODER;
-	Mode = Mode << (2 * BitNumber);
-	mode_value = mode_value & ~(3u << (BitNumber * 2));
-	mode_value = mode_value | Mode;
-	Port->MODER = mode_value;
-}
-int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py)
-{
-	// checks to see if point px,py is within the rectange defined by x,y,w,h
-	uint16_t x2,y2;
-	x2 = x1+w;
-	y2 = y1+h;
-	int rvalue = 0;
-	if ( (px >= x1) && (px <= x2))
-	{
-		// ok, x constraint met
-		if ( (py >= y1) && (py <= y2))
-			rvalue = 1;
-	}
-	return rvalue;
-}
-
-void setupIO()
-{
-	RCC->AHBENR |= (1 << 18) + (1 << 17); // enable Ports A and B
-	display_begin();
-	pinMode(GPIOB,4,0);
-	pinMode(GPIOB,5,0);
-	pinMode(GPIOA,8,0);
-	pinMode(GPIOA,11,0);
-	enablePullUp(GPIOB,4);
-	enablePullUp(GPIOB,5);
-	enablePullUp(GPIOA,11);
-	enablePullUp(GPIOA,8);
 }
 
 void initAsteroids() {

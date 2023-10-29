@@ -33,6 +33,29 @@ struct Asteroid{
 	uint16_t speed;
 };
 
+// Define level information
+struct Level {
+    int numAsteroids;
+    int maxAsteroidSpeed;
+// we can add anything else that we need per level
+};
+
+// Define an array of levels up to 10 levels
+struct Level levels[] = {
+    {3, 4},  // Level 1
+    {4, 5},  // Level 2
+	{5, 6},  // Level 3
+	{6, 7},  // Level 4
+	{7, 8},  // Level 5
+	{8, 9},  // Level 6
+	{9, 10}, // Level 7
+	{10, 11},// Level 8
+	{11, 12},// Level 9
+	{12, 13},// Level 10
+};
+
+int currentLevel = 1; // Initializes the game at level 1
+
 // Declare an array to store asteroids
 struct Asteroid asteroids[MAX_ASTEROIDS];
 
@@ -64,6 +87,7 @@ int main()
 		int toggle = 0;
 		int hmoved = 0;
 		int vmoved = 0;
+		char levelText[16];
 
 		score = 0;
 		uint16_t previous_score = 1;
@@ -82,6 +106,10 @@ int main()
 		while(game_running == true)
 		{
 			hmoved = vmoved = 0;
+
+			// Print the Level and Score
+			snprintf(levelText, sizeof(levelText), "Level %d", currentLevel);
+    		printText(levelText, 74, 5, BLUE, 0);
 
 			drawAsteroids();
 			updateAsteroids();
@@ -165,7 +193,9 @@ int main()
 }
 
 void initAsteroids() {
-    for (int i = 0; i < MAX_ASTEROIDS; i++) {
+	struct Level currentLevelInfo = levels[currentLevel - 1];	
+
+    for (int i = 0; i < currentLevelInfo.numAsteroids; i++) {
         asteroids[i].x = 5 + random(1,10) * 12; // Random X position
 		for(int j; j < number_of_asteroids; j++)
 		{
@@ -314,4 +344,16 @@ void countdown()
 		delay(1000);
 	}
 	clear();
+}
+
+
+// Function to level up the game
+void checkLevelUp() {
+    if (score >= 10 && currentLevel < 10) {
+        currentLevel++;
+        // Reset the score if the score is greater than 10 and we are not at the last level
+        score = 0;
+		// Reset the number of asteroids
+		number_of_asteroids = 1;
+    }
 }

@@ -72,8 +72,6 @@ int main()
 
 		bool game_running = true;
 
-		uint16_t rocket_x = 50;
-		uint16_t rocket_y = 50;
 		uint16_t rocket_x = 53;
 		uint16_t rocket_y = 80;
 		uint16_t old_rocket_x = rocket_x;

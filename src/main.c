@@ -229,8 +229,8 @@ void clearAsteroids() {
 
 void menu(){
 	printTextX2("Welcome to", 5, 5, YELLOW, 0);
-	printTextX2("Space", 30, 30, YELLOW, 0);
-	printTextX2("Dodger", 25, 50, YELLOW, 0);
+	printTextX2("Space", 32, 30, YELLOW, 0);
+	printTextX2("Dodger", 28, 50, YELLOW, 0);
 	printText("Dodge the Meteors", 5, 80, RED, 0);
 	int counter = 0;
 	while(1){

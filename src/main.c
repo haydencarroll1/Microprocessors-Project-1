@@ -212,6 +212,7 @@ void drawAsteroids() {
 		clearAsteroid(asteroids[i].x, asteroids[i].y - asteroids[i].speed);
 		putImage(asteroids[i].x, asteroids[i].y, 10, 10, asteroid, 0, 0); // Adjust the size and image as needed
 		printNumber(score, 5, 5, BLUE, 0);
+		printText("Level 1", 74, 5, BLUE, 0);
 	}
 }
 

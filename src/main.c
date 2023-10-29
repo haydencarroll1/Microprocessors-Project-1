@@ -194,11 +194,11 @@ void updateAsteroids() {
 			{
 				if(asteroids[i].x == asteroids[j].x)
 				{
-					asteroids[i].x = 5 + (random(1,10) * 12);
+					asteroids[i].x = 5 + (rand()%10 * 12);
 				}
 			}
 			asteroids[i].y = 0;
-			if(asteroids[i].speed < MAX_ASTEROID_SPEED && random(1,2) == 1)
+			if(asteroids[i].speed < MAX_ASTEROID_SPEED && random(1,4) == 1)
 			{
 				asteroids[i].speed += 1;
 			}

@@ -6,15 +6,17 @@
 #include <serial.c>
 #include <setup.c>
 
-#define MAX_ASTEROIDS 10
-#define MAX_ASTEROID_SPEED 5
+#define MAX_ASTEROIDS 5
+#define MAX_ASTEROID_SPEED 6
 
 void initAsteroids();
-uint16_t updateAsteroids(uint16_t counter);
+void updateAsteroids();
 void drawAsteroids();
 void clearAsteroid(uint16_t x,uint16_t y);
 void clearAsteroids();
 void menu();
+void menu_crashed(uint16_t rocket_x, uint16_t rocket_y);
+void countdown();
 
 struct Asteroid{
     uint16_t x;
@@ -39,6 +41,7 @@ const uint16_t explosion[]=
 };
 
 uint16_t number_of_asteroids;
+uint16_t score;
 
 int main()
 {
@@ -53,10 +56,12 @@ int main()
 		int hmoved = 0;
 		int vmoved = 0;
 
-		bool game_running = true;
+		score = 0;
+		uint16_t previous_score = 1;
 
 		number_of_asteroids = 1;
-		uint16_t counter = 0;
+
+		bool game_running = true;
 
 		uint16_t rocket_x = 50;
 		uint16_t rocket_y = 50;
@@ -70,13 +75,15 @@ int main()
 			hmoved = vmoved = 0;
 
 			drawAsteroids();
-			counter = updateAsteroids(counter);
+			updateAsteroids();
 
 			// This is a potential way to increase amount of asteroids after 3 cycles of asteroids
-			if ((counter / number_of_asteroids) > 3 && number_of_asteroids < MAX_ASTEROIDS)
+			if(score > (previous_score*2) && number_of_asteroids < MAX_ASTEROIDS)
 			{
 				number_of_asteroids++;
+				previous_score = score;
 			}
+
 
 			if ((GPIOB->IDR & (1 << 4))==0) // right pressed
 			{					
@@ -133,16 +140,6 @@ int main()
 			{
 				if(isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y+14) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y+14) )
 				{
-					// we could use this to display a crash message if the hit an
-					// printTextX2("Crashed!", 10, 20, RGBToWord(0xff,0xff,0), 0);
-					clear();
-					putImage(rocket_x,rocket_y,12,12,explosion,0,0);
-					playNote(G7);
-					delay(1000);
-					printText("You have crashed!", 5, 5, RGBToWord(0xff,0xff,0), 0);
-					delay(2000);
-					printText("press any button", 5, 25, RGBToWord(0xff,0xff,0), 0);
-					printText("to restart!", 5, 35, RGBToWord(0xff,0xff,0), 0);
 					game_running = false;					
 					break;
 				}
@@ -151,10 +148,8 @@ int main()
 		}
 		while(game_running == false)
 		{
-			if ((GPIOB->IDR & (1 << 4))==0 || (GPIOB->IDR & (1 << 5))==0 || (GPIOA->IDR & (1 << 11)) == 0 || (GPIOA->IDR & (1 << 8)) == 0) // any button pressed
-			{
-				game_running = true;
-			}
+			menu_crashed(rocket_x, rocket_y);
+			game_running = true;
 		}
 	}
 	return 0;
@@ -176,32 +171,31 @@ void initAsteroids() {
     }
 }
 
-uint16_t updateAsteroids(uint16_t counter) {
-	uint32_t random_number = random(1,5);
+void updateAsteroids() {
     for (int i = 0; i < number_of_asteroids; i++) {
         asteroids[i].y += asteroids[i].speed;
 
         // If asteroid goes off the screen, respawn it at the top
         if (asteroids[i].y > 150) {
-			counter += 1;
+			score++;
+			printNumber(score, 5, 5, RGBToWord(0xff,0xff,0), 0);
 			fillRectangle(asteroids[i].x, asteroids[i].y - asteroids[i].speed, 10, 10, 0);
 			asteroids[i].x = 5 + (random(1,10) * 12);
-			for(int j; j < number_of_asteroids; j++)
-			{
-				if(asteroids[i].x == asteroids[j].x)
-				{
-					asteroids[i].x = 5 + (random(1,10) * 12);
-					j = 0;
-				}
-			}
+			// for(int j = 0; j < number_of_asteroids; j++)
+			// {
+			// 	if(asteroids[i].x == asteroids[j].x)
+			// 	{
+			// 		asteroids[i].x = 5 + (random(1,10) * 12);
+			// 		j = 0;
+			// 	}
+			// }
 			asteroids[i].y = 0;
-			if(asteroids[i].speed < MAX_ASTEROID_SPEED && random_number == 1)
+			if(asteroids[i].speed < MAX_ASTEROID_SPEED && random(1,2) == 1)
 			{
 				asteroids[i].speed += 1;
 			}
         }
     }
-	return counter;
 }
 
 // Function to draw an asteroid at a specific position
@@ -209,6 +203,7 @@ void drawAsteroids() {
 	for(int i = 0; i < number_of_asteroids; i++){
 		clearAsteroid(asteroids[i].x, asteroids[i].y - asteroids[i].speed);
 		putImage(asteroids[i].x, asteroids[i].y, 10, 10, asteroid, 0, 0); // Adjust the size and image as needed
+		printNumber(score, 5, 5, RGBToWord(0xff,0xff,0), 0);
 	}
 }
 
@@ -228,5 +223,85 @@ void menu(){
 	printTextX2("Space", 30, 30, RGBToWord(0xff,0xff,0), 0);
 	printTextX2("Dodger", 25, 50, RGBToWord(0xff,0xff,0), 0);
 	printText("Dodge the Meteors", 5, 80, RGBToWord(0xff,0xff,0), 0);
-	delay(5000);
+	int counter = 0;
+	while(1){
+		counter++;
+		if(counter < 50){
+			printText("Press < or >", 20, 100, RGBToWord(0xff,0xff,0), 0);
+		}
+		else if(counter<80){
+			fillRectangle(5, 100, 100, 10, 0);
+		}
+		else{
+			counter = 0;
+		}
+		if ((GPIOB->IDR & (1 << 4))==0 || (GPIOB->IDR & (1 << 5))==0)
+		{
+			break;
+		}
+		delay(10);
+	}
+	clear();
+	delay(10);
+	countdown();
+}
+
+void menu_crashed(uint16_t rocket_x, uint16_t rocket_y)
+{
+	clear();
+	putImage(rocket_x,rocket_y,12,12,explosion,0,0);
+	playNote(G7);
+	delay(1000);
+	printTextX2("You have", 15, 5, RGBToWord(0xff,0xff,0), 0);
+	printTextX2("CRASHED", 20, 25, RGBToWord(0xff,0xff,0), 0);
+	printText("Final score:", 5, 45, RGBToWord(0xff,0xff,0), 0);
+	printNumber(score, 88, 45, RGBToWord(0xff,0xff,0), 0);
+	delay(2000);
+	fillRectangle(rocket_x, rocket_y, 12, 12, 0);
+	printText("To Restart", 25, 80, RGBToWord(0xff,0xff,0), 0);
+	int counter = 0;
+	while(1){
+		counter++;
+		if(counter < 50){
+			printText("Press < or >", 20, 65, RGBToWord(0xff,0xff,0), 0);
+		}
+		else if(counter<80){
+			fillRectangle(20, 65, 100, 10, 0);
+		}
+		else{
+			counter = 0;
+		}
+		if ((GPIOB->IDR & (1 << 4))==0 || (GPIOB->IDR & (1 << 5))==0)
+		{
+			break;
+		}
+		delay(12);
+	}
+	clear();
+	countdown();
+}
+
+
+void countdown()
+{
+	for(int i = 0; i < 4; i++){
+		if(i == 0)
+		{
+			printTextX2("3", 55, 40, RGBToWord(0xff,0xff,0), 0);
+		}
+		else if(i == 1)
+		{
+			printTextX2("2", 55, 40, RGBToWord(0xff,0xff,0), 0);
+		}
+		else if(i == 2)
+		{
+			printTextX2("1", 55, 40, RGBToWord(0xff,0xff,0), 0);
+		}
+		else if(i == 3)
+		{
+			printTextX2("DODGE!", 30, 40, RGBToWord(0xff,0xff,0), 0);
+		}
+		delay(1000);
+	}
+	clear();
 }

@@ -1,12 +1,11 @@
 // 
-
 #include <stm32f031x6.h>
 #include <stdbool.h>
 #include "display.h"
 #include <prbs.c>
 #include <sound.c>
-#include <serial.c>
 #include <setup.c>
+// #include <musical_notes.h>
 
 #define MAX_ASTEROIDS 8
 #define MAX_ASTEROID_SPEED 8
@@ -90,6 +89,9 @@ void setupGame() {
     initClock();
     initSysTick();
     setupIO();
+	initSound();
+
+	
 }  
 
 
@@ -120,24 +122,32 @@ void menu() {
 	countdown();
 }
 
-void countdown()
-{
+void countdown() {
 	for(int i = 0; i < 4; i++){
 		if(i == 0) {
 			printTextX2("3", 58, 40, RED, 0);
+			playNote(G3);
 		}
 		else if(i == 1) {
 			printTextX2("2", 58, 40, RED, 0);
+			playNote(F3);
 		}
 		else if(i == 2) {
 			printTextX2("1", 58, 40, RED, 0);
+			playNote(E3);
 		}
 		else if(i == 3) {
 			clear();
 			printTextX2("DODGE!", 30, 40, RED, 0);
+			playNote(D3);
+			break;
 		}
-		delay(1000);
+		delay(200);
+		playNote(0);
+		delay(800);
 	}
+	delay(500);
+	playNote(0);
 	clear();
 }
 
@@ -311,11 +321,9 @@ void clearAsteroids() {
 }
 
 // This function is called when the player crashes into asteroid, displays message asking to press < or > to restart
-void gameCrashed()
-{
+void gameCrashed() {
 	clear();
 	putImage(rocket_x,rocket_y,12,12,explosion,0,0);
-	playNote(G7);
 	delay(1000);
 	printTextX2("You have", 15, 5, YELLOW, 0);
 	printTextX2("CRASHED", 20, 25, RED, 0);

@@ -12,6 +12,7 @@
                 "/Users/haydencarroll/Desktop/Computer Science/Microprocessors-Project-1/src",
                 "/Users/haydencarroll/.platformio/packages/framework-cmsis/CMSIS/Include",
                 "/Users/haydencarroll/.platformio/packages/framework-cmsis-stm32f0/Include",
+                "/Users/haydencarroll/Desktop/Computer Science/Microprocessors-Project-1/.pio/libdeps/nucleo_f031k6/Unity/src",
                 ""
             ],
             "browse": {
@@ -21,6 +22,7 @@
                     "/Users/haydencarroll/Desktop/Computer Science/Microprocessors-Project-1/src",
                     "/Users/haydencarroll/.platformio/packages/framework-cmsis/CMSIS/Include",
                     "/Users/haydencarroll/.platformio/packages/framework-cmsis-stm32f0/Include",
+                    "/Users/haydencarroll/Desktop/Computer Science/Microprocessors-Project-1/.pio/libdeps/nucleo_f031k6/Unity/src",
                     ""
                 ]
             },

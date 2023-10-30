@@ -5,7 +5,6 @@
 #include <prbs.c>
 #include <sound.c>
 #include <setup.c>
-// #include <musical_notes.h>
 
 #define MAX_ASTEROIDS 8
 #define MAX_ASTEROID_SPEED 8
@@ -181,8 +180,16 @@ void gameLoop() {
 		updateAsteroids();
 
 		// This is a way to increase the number of asteroids after the score reaches certain points
-		if (score > (previous_score * 3)+10) {
+		if (score >= previous_score * 5 && currentLevel <= 5) {
 			currentLevel++;
+			playNote(A3);
+			delay(500);
+			playNote(0);
+			printText(levels[currentLevel-1].levelName, 74, 5, BLUE, 0);
+			printText("You reached", 30, 20, RED, 0);
+			printTextX2(levels[currentLevel-1].levelName, 5, 40, RED, 0);
+			delay(5000);
+			fillRectangle(5,20,150,10,0);
 			previous_score = score;
 		}
 
@@ -208,7 +215,7 @@ void initAsteroids() {
 			}
 		}
         asteroids[i].y = 0; // Start at the top of the screen
-        asteroids[i].speed = 2; 
+        asteroids[i].speed = random(1,3); 
     }
 }
 

@@ -90,8 +90,6 @@ void setupGame() {
     initSysTick();
     setupIO();
 	initSound();
-
-	
 }  
 
 
@@ -172,6 +170,7 @@ void gameLoop() {
 	initAsteroids();
 
 	while (game_running) {
+		playNote(0);
 		hmoved = vmoved = 0;
 		currentLevelInfo = levels[currentLevel - 1];
 		// Print the Level and Score
@@ -231,6 +230,7 @@ void updateAsteroids() {
 
         // If asteroid goes off the screen, respawn it at the top
         if (asteroids[i].y > 150) {
+			playNote(B4);
 			score++;
 			printNumber(score, 5, 5, BLUE, 0);
 			fillRectangle(asteroids[i].x, asteroids[i].y - asteroids[i].speed, 10, 10, 0);
@@ -324,7 +324,9 @@ void clearAsteroids() {
 void gameCrashed() {
 	clear();
 	putImage(rocket_x,rocket_y,12,12,explosion,0,0);
+	playNote(D2);
 	delay(1000);
+	playNote(0);
 	printTextX2("You have", 15, 5, YELLOW, 0);
 	printTextX2("CRASHED", 20, 25, RED, 0);
 	printText("Final score:", 5, 45, BLUE, 0);

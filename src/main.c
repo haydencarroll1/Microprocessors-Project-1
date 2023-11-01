@@ -1,5 +1,6 @@
 // 
 #include <stm32f031x6.h>
+#include "stm32f0xx_hal.h"
 #include <stdbool.h>
 #include "display.h"
 #include <prbs.c>
@@ -14,6 +15,9 @@
 #define ORANGE RGBToWord(255, 149, 38)
 #define RED RGBToWord(239, 68, 35)
 #define BLUE RGBToWord(42, 52, 146)
+
+#define FLASH_SECTOR     FLASH_SECTOR_7 // Example sector, change to the appropriate sector
+#define HIGHEST_LEVEL_ADDRESS 0x0800C000 // Address of the highest completed level in flash memory
 
 void setupGame();
 void initAsteroids();
@@ -93,32 +97,47 @@ void setupGame() {
 }  
 
 
-void menu() {
-	printTextX2("Welcome to", 5, 5, YELLOW, 0);
-	printTextX2("Space", 32, 30, YELLOW, 0);
-	printTextX2("Dodger", 28, 50, YELLOW, 0);
-	printText("Dodge the Meteors", 5, 80, RED, 0);
-	int counter = 0;
-	while(1){
-		counter++;
-		if(counter < 50) {
-			printText("Press < or >", 23, 100, ORANGE, 0);
-		}
-		else if(counter<80) {
-			fillRectangle(15, 100, 100, 10, 0);
-		}
-		else {
-			counter = 0;
-		}
-		if ((GPIOB->IDR & (1 << 4))==0 || (GPIOB->IDR & (1 << 5))==0) {
-			break;
-		}
-		delay(10);
-	}
-	clear();
-	delay(20);
-	countdown();
+vvoid menu() {
+    printTextX2("Welcome to", 5, 5, YELLOW, 0);
+    printTextX2("Space", 32, 30, YELLOW, 0);
+    printTextX2("Dodger", 28, 50, YELLOW, 0);
+    printText("Dodge the Meteors", 5, 80, RED, 0);
+    
+    // Display the highest completed level on the menu screen
+    char highestLevelText[20];
+    snprintf(highestLevelText, sizeof(highestLevelText), "Highest Level: %d", highestLevel);
+    printText(highestLevelText, 10, 80, GREEN, 0);
+    
+    int counter = 0;
+    while(1){
+        counter++;
+        if(counter < 50) {
+            printText("Press < or > to start from scratch", 23, 100, ORANGE, 0);
+        }
+        else if(counter < 80) {
+            fillRectangle(23, 100, 210, 10, 0);
+        }
+        else {
+            counter = 0;
+        }
+
+        // Detect button press to select the game mode
+        if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
+            startNewGame();
+            break;
+        }
+        else if ((GPIOA->IDR & (1 << 8)) == 0 || (GPIOA->IDR & (1 << 11)) == 0) {
+            loadGame(highestLevel);
+            break;
+        }
+
+        delay(10);
+    }
+    clear();
+    delay(20);
+    countdown();
 }
+
 
 void countdown() {
 	for(int i = 0; i < 4; i++){
@@ -367,4 +386,47 @@ void levelUp(){
 	delay(5000);
 	printText(levels[currentLevel-1].levelName, 74, 5, BLUE, 0);
 	fillRectangle(15,20,150,40,0);
+}
+
+void loadGame(int level) {
+    if (level >= 1 && level <= sizeof(levels) / sizeof(levels[0])) {
+        currentLevel = level;
+
+        setupGame();
+
+        clear();
+        gameLoop();
+    } else {
+        printText("Invalid Level Selection", 10, 60, RED, 0);
+        delay(2000); // Wait 2 seconds
+        clear();
+        menu(); // Return to the menu after an invalid level selection
+    }
+}
+
+void saveHighestLevel(int level) {
+    HAL_Init();
+    FLASH_EraseInitTypeDef eraseInitStruct;
+    uint32_t sectorError;
+    HAL_StatusTypeDef status;
+    eraseInitStruct.TypeErase = FLASH_TYPEERASE_SECTORS;
+    eraseInitStruct.Sector = FLASH_SECTOR_0;
+    eraseInitStruct.NbSectors = 1;
+
+    HAL_FLASH_Unlock();
+
+    status = HAL_FLASHEx_Erase(&eraseInitStruct, &sectorError);
+    if (status == HAL_OK) {
+        status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, FLASH_BASE + 0x40000, level);
+    }
+    HAL_FLASH_Lock();
+}
+
+// Function to load the highest completed level from non-volatile memory
+int loadHighestLevel() {	
+    HAL_Init();
+
+    int highestLevel = *(__IO int*)HIGHEST_LEVEL_ADDRESS;
+
+    return highestLevel;
 }

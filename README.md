@@ -1,5 +1,8 @@
-# Microprocessors-Project-1
-CMPU2013 Microprocessors Module Group Project - Hayden Carroll and Sam Curran
+# Microprocessors Project 1
+
+**CMPU2013 Microprocessors Module Group Project**
+
+*Developed by Hayden Carroll and Sam Curran*
 
 # The Space Dodger Game
 

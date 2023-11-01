@@ -27,6 +27,7 @@ void countdown();
 void handlePlayerInput(int *hmoved, int *vmoved);
 void updateRocketPosition(int hmoved, int toggle);
 bool checkCollision();
+void levelUp();
 
 struct Asteroid{
     uint16_t x;
@@ -44,11 +45,11 @@ struct Level {
 
 // Define an array of levels up to 5 levels
 struct Level levels[] = {
-    {1, 4, "Level 1"},  // Level 1
-    {2, 5, "Level 2"},  // Level 2
-	{4, 6, "Level 3"},  // Level 3
-	{6, 6, "Level 4"},  // Level 4
-	{8, 8, "Level 5"},  // Level 5
+    {1, 2, "Level 1"},  // Level 1
+    {2, 3, "Level 2"},  // Level 2
+	{4, 4, "Level 3"},  // Level 3
+	{6, 4, "Level 4"},  // Level 4
+	{8, 5, "Level 5"},  // Level 5
 };
 
 int currentLevel = 1; // Initializes the game at level 1
@@ -80,7 +81,7 @@ int main() {
 	while(1) {
         gameLoop();
         gameCrashed(rocket_x, rocket_y);
-	}
+	}	
 	return 0;
 }
 
@@ -115,7 +116,7 @@ void menu() {
 		delay(10);
 	}
 	clear();
-	delay(10);
+	delay(20);
 	countdown();
 }
 
@@ -123,7 +124,7 @@ void countdown() {
 	for(int i = 0; i < 4; i++){
 		if(i == 0) {
 			printTextX2("3", 58, 40, RED, 0);
-			playNote(G3);
+			playNote(E3);
 		}
 		else if(i == 1) {
 			printTextX2("2", 58, 40, RED, 0);
@@ -131,7 +132,7 @@ void countdown() {
 		}
 		else if(i == 2) {
 			printTextX2("1", 58, 40, RED, 0);
-			playNote(E3);
+			playNote(G3);
 		}
 		else if(i == 3) {
 			clear();
@@ -180,16 +181,8 @@ void gameLoop() {
 		updateAsteroids();
 
 		// This is a way to increase the number of asteroids after the score reaches certain points
-		if (score >= previous_score * 5 && currentLevel <= 5) {
-			currentLevel++;
-			playNote(A3);
-			delay(500);
-			playNote(0);
-			printText(levels[currentLevel-1].levelName, 74, 5, BLUE, 0);
-			printText("You reached", 30, 20, RED, 0);
-			printTextX2(levels[currentLevel-1].levelName, 5, 40, RED, 0);
-			delay(5000);
-			fillRectangle(5,20,150,10,0);
+		if (score >= (previous_score + 5) * 2 && currentLevel <= 5) {
+			levelUp();
 			previous_score = score;
 		}
 
@@ -201,7 +194,7 @@ void gameLoop() {
 			game_running = false;
 		}
 
-		delay(35);
+		delay(20);
     }
 }
 
@@ -215,7 +208,7 @@ void initAsteroids() {
 			}
 		}
         asteroids[i].y = 0; // Start at the top of the screen
-        asteroids[i].speed = random(1,3); 
+        asteroids[i].speed = 2;
     }
 }
 
@@ -241,14 +234,14 @@ void updateAsteroids() {
 			score++;
 			printNumber(score, 5, 5, BLUE, 0);
 			fillRectangle(asteroids[i].x, asteroids[i].y - asteroids[i].speed, 10, 10, 0);
-			asteroids[i].x = 5 + (random(1,15) * 8);
+			asteroids[i].x = 5 + random(1,10) * 12;
 			for(int j = 0; j < currentLevelInfo.numAsteroids; j++) {
-				if(asteroids[i].x == asteroids[j].x) {
-					asteroids[i].x = 5 + (random(1,15) * 8);
+				if(asteroids[i].x == asteroids[j].x && i != j) {
+					asteroids[i].x = 5;
 				}
 			}
 			asteroids[i].y = 0;
-			if(asteroids[i].speed < currentLevelInfo.maxAsteroidSpeed && (rand()%3 == 1)) {
+			if(asteroids[i].speed < currentLevelInfo.maxAsteroidSpeed && (random(1,3) == 1)) {
 				asteroids[i].speed += 1;
 			}
         }
@@ -258,13 +251,13 @@ void updateAsteroids() {
 void handlePlayerInput(int *hmoved, int *vmoved){
 	if ((GPIOB->IDR & (1 << 4))==0) { // right pressed					
 		if (rocket_x < 115) {
-			rocket_x += 2;
+			rocket_x += 3;
 			*hmoved = 1;
 		}						
 	}
 	if ((GPIOB->IDR & (1 << 5))==0) { // left pressed		
 		if (rocket_x > 5) {
-			rocket_x -= 2;
+			rocket_x -= 3;
 			*hmoved = 1;
 		}			
 	}
@@ -361,4 +354,17 @@ void gameCrashed() {
 	clear();
 	countdown();
 	currentLevel = 1;
+}
+
+void levelUp(){
+	currentLevel++;
+	playNote(A3);
+	delay(500);
+	playNote(0);
+	fillRectangle(74,5,70,10,0);
+	printText("You've reached", 15, 20, RED, 0);
+	printTextX2(levels[currentLevel-1].levelName, 20, 40, RED, 0);
+	delay(5000);
+	printText(levels[currentLevel-1].levelName, 74, 5, BLUE, 0);
+	fillRectangle(15,20,150,40,0);
 }

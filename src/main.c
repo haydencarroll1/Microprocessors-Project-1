@@ -27,8 +27,9 @@ void clearAsteroids();
 void menu();
 void gameCrashed();
 void countdown();
+void gameLoop();
 void handlePlayerInput(int *hmoved, int *vmoved);
-void updateRocketPosition(int hmoved, int toggle);
+void updateRocketPosition(int hmoved, int vmoved, int toggle);
 bool checkCollision();
 void levelUp();
 void resetAsteroids();
@@ -48,17 +49,21 @@ struct Level {
     int numAsteroids;
     int maxAsteroidSpeed;
 	char levelName[10];
+	char levelmessage[20];
+	int levelScreenPosition;
 // we can add anything else that we need per level
 };
 
 // Define an array of levels up to 5 levels
 struct Level levels[] = {
-    {1, 2, "Level 1"},  // Level 1
-    {2, 3, "Level 2"},  // Level 2
-	{3, 4, "Level 3"},  // Level 3
-	{4, 5, "Level 4"},  // Level 4
-	{5, 6, "Level 5"},  // Level 5
-	{6, 7, "Level 6"},  // Level 5
+    {1, 2, "Level 1", "Good Start!", 30},  // Level 1
+    {2, 3, "Level 2", "Getting There!", 25},  // Level 2
+	{3, 4, "Level 3", "This all you got?", 20},  // Level 3
+	{4, 5, "Level 4", "Okay, not too bad", 20},  // Level 4
+	{5, 6, "Level 5", "Alright this is crazy", 15},  // Level 5
+	{6, 7, "Level 6", "How???", 35},  // Level 6
+	{7, 7, "Level 7", "You're too good", 25},  // Level 7
+	{7, 8, "Level 8", "I'm very impressed!", 20},  // Level 8
 };
 
 int currentLevel; // Initializes the game level variable 
@@ -130,7 +135,7 @@ void menu() {
     }
     clear();
     delay(20);
-    countdown();
+    gameLoop();
 }
 
 
@@ -163,10 +168,11 @@ void countdown() {
 	delay(500);
 	playNote(0);
 	clear();
-	gameLoop();
 }
 
 void gameLoop() {
+	countdown();
+
 	int toggle = 0;
 	int hmoved = 0;
 	int vmoved = 0;
@@ -182,9 +188,10 @@ void gameLoop() {
 	currentLevel = 1;
 
 	rocket_x = 53;
-	rocket_y = 80;
+	rocket_y = 120;
 	old_rocket_x = rocket_x;
 	old_rocket_y = rocket_y;
+	putImage(rocket_x,rocket_y,12,16,rocket,0,0);
 
 	initAsteroids();
 
@@ -206,7 +213,7 @@ void gameLoop() {
 		}
 
 		handlePlayerInput(&hmoved, &vmoved);
-		updateRocketPosition(hmoved, toggle);
+		updateRocketPosition(hmoved, vmoved, toggle);
 
 		if (checkCollision()) {
 			game_running = false;
@@ -248,19 +255,19 @@ void updateAsteroids() {
     for (int i = 0; i < number_of_asteroids; i++) {
         asteroids[i].y += asteroids[i].speed;
 
-		if (asteroids[i].y > number_of_asteroids * (random(30,70)) && number_of_asteroids < currentLevelInfo.numAsteroids){
+		if (asteroids[i].y > number_of_asteroids * (random(40,100)) && number_of_asteroids < currentLevelInfo.numAsteroids){
 			number_of_asteroids++;
 		}
         // If asteroid goes off the screen, respawn it at the top
-        if (asteroids[i].y > 150) {
+        if (asteroids[i].y > random(150,200)) {
 			playNote(B4);
 			score++;
 			printNumber(score, 5, 5, BLUE, 0);
 			fillRectangle(asteroids[i].x, asteroids[i].y - asteroids[i].speed, 10, 10, 0);
-			asteroids[i].x = 5 + random(1,10) * 12;
+			asteroids[i].x = random(1,10) * 12;
 			for(int j = 0; j < currentLevelInfo.numAsteroids; j++) {
 				if(asteroids[i].x == asteroids[j].x && i != j) {
-					asteroids[i].x = 5;
+					asteroids[i].x = random(1,10) * 12;
 				}
 			}
 			asteroids[i].y = 0;
@@ -274,44 +281,36 @@ void updateAsteroids() {
 
 void handlePlayerInput(int *hmoved, int *vmoved){
 	if ((GPIOB->IDR & (1 << 4))==0) { // right pressed					
-		if (rocket_x < 115) {
-			rocket_x += 3;
+		if (rocket_x < 110) {
+			rocket_x += 4;
 			*hmoved = 1;
 		}						
 	}
 	if ((GPIOB->IDR & (1 << 5))==0) { // left pressed		
-		if (rocket_x > 5) {
-			rocket_x -= 3;
+		if (rocket_x > 3) {
+			rocket_x -= 4;
 			*hmoved = 1;
 		}			
 	}
 	if ( (GPIOA->IDR & (1 << 11)) == 0) { // down pressed
 		if (rocket_y < 140) {
-			rocket_y++;			
+			rocket_y += 2;			
 			*vmoved = 1;
 		}
 	}
 	if ( (GPIOA->IDR & (1 << 8)) == 0) { // up pressed		
 		if (rocket_y > 55) {
-			rocket_y--;
+			rocket_y -= 2;
 			*vmoved = 1;
 		}
 	}
 }
 
-void updateRocketPosition(int hmoved, int toggle) {
-	fillRectangle(old_rocket_x,old_rocket_y,12,16,0);
-	old_rocket_x = rocket_x;
-	old_rocket_y = rocket_y;					
-	if (hmoved) {
-		if (toggle)
-			putImage(rocket_x,rocket_y,12,16,rocket,0,0);
-		else
-			putImage(rocket_x,rocket_y,12,16,rocket,0,0);
-		
-		toggle = toggle ^ 1;
-	}
-	else {
+void updateRocketPosition(int hmoved, int vmoved, int toggle) {
+	if ((vmoved) || (hmoved)){	
+		fillRectangle(old_rocket_x,old_rocket_y,12,16,0);
+		old_rocket_x = rocket_x;
+		old_rocket_y = rocket_y;				
 		putImage(rocket_x,rocket_y,12,16,rocket,0,0);
 	}
 }
@@ -372,7 +371,7 @@ void gameCrashed() {
 			counter = 0;
 		}
 		if ((GPIOB->IDR & (1 << 4))==0 || (GPIOB->IDR & (1 << 5))==0) {
-			countdown();
+			gameLoop();
 			break;
 		}
 		else if((GPIOA->IDR & (1 << 11)) == 0)

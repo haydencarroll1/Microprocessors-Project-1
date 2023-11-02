@@ -380,6 +380,8 @@ void levelUp(){
 	currentLevel++;
 	clearAsteroids();
 	resetAsteroids();
+	printNumber(score, 5, 5, BLUE, 0);
+	printText(levels[currentLevel-1].levelName, 74, 5, BLUE, 0);
 	playNote(A3);
 	delay(500);
 	playNote(0);

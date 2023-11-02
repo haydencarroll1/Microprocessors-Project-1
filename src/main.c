@@ -32,6 +32,7 @@ void updateRocketPosition(int hmoved, int toggle);
 bool checkCollision();
 void levelUp();
 void resetAsteroids();
+
 // void loadGame(int level);
 // void saveHighestLevel(int level);;
 // int loadHighestLevel();
@@ -60,7 +61,7 @@ struct Level levels[] = {
 	{6, 7, "Level 6"},  // Level 5
 };
 
-int currentLevel = 1; // Initializes the game at level 1
+int currentLevel; // Initializes the game level variable 
 
 // Declare an array to store asteroids
 struct Asteroid asteroids[MAX_ASTEROIDS];
@@ -86,10 +87,6 @@ uint16_t old_rocket_y;
 int main() {
     setupGame();
     menu();
-	while(1) {
-        gameLoop();
-        gameCrashed();
-	}	
 	return 0;
 }
 
@@ -138,6 +135,8 @@ void menu() {
 
 
 void countdown() {
+	clear();
+
 	for(int i = 0; i < 4; i++){
 		if(i == 0) {
 			printTextX2("3", 58, 40, RED, 0);
@@ -164,6 +163,7 @@ void countdown() {
 	delay(500);
 	playNote(0);
 	clear();
+	gameLoop();
 }
 
 void gameLoop() {
@@ -178,6 +178,8 @@ void gameLoop() {
 	uint16_t previous_score = 1;
 	number_of_asteroids = 1;
 	bool game_running = true;
+
+	currentLevel = 1;
 
 	rocket_x = 53;
 	rocket_y = 80;
@@ -212,6 +214,8 @@ void gameLoop() {
 
 		delay(30);
     }
+
+	gameCrashed();
 }
 
 void initAsteroids() {
@@ -359,6 +363,7 @@ void gameCrashed() {
 		counter++;
 		if(counter < 50) {
 			printText("Press < or >", 23, 65, ORANGE, 0);
+			printText("Press V to quit", 10, 100, ORANGE, 0);
 		}
 		else if(counter<80) {
 			fillRectangle(20, 65, 100, 10, 0);
@@ -367,13 +372,22 @@ void gameCrashed() {
 			counter = 0;
 		}
 		if ((GPIOB->IDR & (1 << 4))==0 || (GPIOB->IDR & (1 << 5))==0) {
+			countdown();
+			break;
+		}
+		else if((GPIOA->IDR & (1 << 11)) == 0)
+		{
+			clear();
+			printText("Thank you for", 18, 5, BLUE, 0);
+			printText("playing", 37, 15, BLUE, 0);
+			printTextX2("Space", 32, 30, YELLOW, 0);
+			printTextX2("Dodger", 28, 50, YELLOW, 0);
 			break;
 		}
 		delay(12);
 	}
-	clear();
-	countdown();
-	currentLevel = 1;
+	
+
 }
 
 void levelUp(){

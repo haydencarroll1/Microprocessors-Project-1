@@ -1,0 +1,47 @@
+// AUTOMATICALLY GENERATED FILE. PLEASE DO NOT MODIFY IT MANUALLY
+//
+// PIO Unified Debugger
+//
+// Documentation: https://docs.platformio.org/page/plus/debugging.html
+// Configuration: https://docs.platformio.org/page/projectconf/section_env_debug.html
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "platformio-debug",
+            "request": "launch",
+            "name": "PIO Debug",
+            "executable": "/Users/haydencarroll/Desktop/Computer Science/Microprocessors-Project-1/.pio/build/nucleo_f031k6/firmware.elf",
+            "projectEnvName": "nucleo_f031k6",
+            "toolchainBinDir": "/Users/haydencarroll/.platformio/packages/toolchain-gccarmnoneeabi/bin",
+            "internalConsoleOptions": "openOnSessionStart",
+            "svdPath": "/Users/haydencarroll/.platformio/platforms/ststm32/misc/svd/STM32F031x.svd",
+            "preLaunchTask": {
+                "type": "PlatformIO",
+                "task": "Pre-Debug"
+            }
+        },
+        {
+            "type": "platformio-debug",
+            "request": "launch",
+            "name": "PIO Debug (skip Pre-Debug)",
+            "executable": "/Users/haydencarroll/Desktop/Computer Science/Microprocessors-Project-1/.pio/build/nucleo_f031k6/firmware.elf",
+            "projectEnvName": "nucleo_f031k6",
+            "toolchainBinDir": "/Users/haydencarroll/.platformio/packages/toolchain-gccarmnoneeabi/bin",
+            "internalConsoleOptions": "openOnSessionStart",
+            "svdPath": "/Users/haydencarroll/.platformio/platforms/ststm32/misc/svd/STM32F031x.svd"
+        },
+        {
+            "type": "platformio-debug",
+            "request": "launch",
+            "name": "PIO Debug (without uploading)",
+            "executable": "/Users/haydencarroll/Desktop/Computer Science/Microprocessors-Project-1/.pio/build/nucleo_f031k6/firmware.elf",
+            "projectEnvName": "nucleo_f031k6",
+            "toolchainBinDir": "/Users/haydencarroll/.platformio/packages/toolchain-gccarmnoneeabi/bin",
+            "internalConsoleOptions": "openOnSessionStart",
+            "svdPath": "/Users/haydencarroll/.platformio/platforms/ststm32/misc/svd/STM32F031x.svd",
+            "loadMode": "manual"
+        }
+    ]
+}

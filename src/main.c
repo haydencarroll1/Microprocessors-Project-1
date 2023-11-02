@@ -88,7 +88,7 @@ int main() {
     menu();
 	while(1) {
         gameLoop();
-        gameCrashed(rocket_x, rocket_y);
+        gameCrashed();
 	}	
 	return 0;
 }

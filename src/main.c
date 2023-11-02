@@ -1,6 +1,5 @@
-// 
 #include <stm32f031x6.h>
-#include "stm32f0xx_hal.h"
+// #include "stm32f0xx_hal.h"
 #include <stdbool.h>
 #include "display.h"
 #include <prbs.c>
@@ -16,8 +15,8 @@
 #define RED RGBToWord(239, 68, 35)
 #define BLUE RGBToWord(42, 52, 146)
 
-#define FLASH_SECTOR     FLASH_SECTOR_7 // Example sector, change to the appropriate sector
-#define HIGHEST_LEVEL_ADDRESS 0x0800C000 // Address of the highest completed level in flash memory
+// #define FLASH_SECTOR     FLASH_SECTOR_7 // Example sector, change to the appropriate sector
+// #define HIGHEST_LEVEL_ADDRESS 0x0800C000 // Address of the highest completed level in flash memory
 
 void setupGame();
 void initAsteroids();
@@ -32,6 +31,10 @@ void handlePlayerInput(int *hmoved, int *vmoved);
 void updateRocketPosition(int hmoved, int toggle);
 bool checkCollision();
 void levelUp();
+void resetAsteroids();
+// void loadGame(int level);
+// void saveHighestLevel(int level);;
+// int loadHighestLevel();
 
 struct Asteroid{
     uint16_t x;
@@ -51,9 +54,10 @@ struct Level {
 struct Level levels[] = {
     {1, 2, "Level 1"},  // Level 1
     {2, 3, "Level 2"},  // Level 2
-	{4, 4, "Level 3"},  // Level 3
-	{6, 4, "Level 4"},  // Level 4
-	{8, 5, "Level 5"},  // Level 5
+	{3, 4, "Level 3"},  // Level 3
+	{4, 5, "Level 4"},  // Level 4
+	{5, 6, "Level 5"},  // Level 5
+	{6, 7, "Level 6"},  // Level 5
 };
 
 int currentLevel = 1; // Initializes the game at level 1
@@ -97,22 +101,21 @@ void setupGame() {
 }  
 
 
-vvoid menu() {
+void menu() {
     printTextX2("Welcome to", 5, 5, YELLOW, 0);
     printTextX2("Space", 32, 30, YELLOW, 0);
     printTextX2("Dodger", 28, 50, YELLOW, 0);
     printText("Dodge the Meteors", 5, 80, RED, 0);
     
     // Display the highest completed level on the menu screen
-    char highestLevelText[20];
-    snprintf(highestLevelText, sizeof(highestLevelText), "Highest Level: %d", highestLevel);
-    printText(highestLevelText, 10, 80, GREEN, 0);
+    // char highestLevelText[20];
+    // printText(highestLevelText, 10, 80, GREEN, 0);
     
     int counter = 0;
     while(1){
         counter++;
         if(counter < 50) {
-            printText("Press < or > to start from scratch", 23, 100, ORANGE, 0);
+            printText("Press < or >", 23, 100, ORANGE, 0);
         }
         else if(counter < 80) {
             fillRectangle(23, 100, 210, 10, 0);
@@ -121,13 +124,8 @@ vvoid menu() {
             counter = 0;
         }
 
-        // Detect button press to select the game mode
+        // Detect button press restart
         if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
-            startNewGame();
-            break;
-        }
-        else if ((GPIOA->IDR & (1 << 8)) == 0 || (GPIOA->IDR & (1 << 11)) == 0) {
-            loadGame(highestLevel);
             break;
         }
 
@@ -207,13 +205,12 @@ void gameLoop() {
 
 		handlePlayerInput(&hmoved, &vmoved);
 		updateRocketPosition(hmoved, toggle);
-		// drawRocket(rocket_x, rocket_y, hmoved, toggle);
 
 		if (checkCollision()) {
 			game_running = false;
 		}
 
-		delay(20);
+		delay(30);
     }
 }
 
@@ -234,7 +231,7 @@ void initAsteroids() {
 // Function to draw an asteroid at a specific position
 void drawAsteroids() {
 	struct Level currentLevelInfo = levels[currentLevel - 1];
-	for(int i = 0; i < currentLevelInfo.numAsteroids; i++) {
+	for(int i = 0; i < number_of_asteroids; i++) {
 		clearAsteroid(asteroids[i].x, asteroids[i].y - asteroids[i].speed);
 		putImage(asteroids[i].x, asteroids[i].y, 10, 10, asteroid, 0, 0); // Adjust the size and image as needed
 		printNumber(score, 5, 5, BLUE, 0);
@@ -244,9 +241,12 @@ void drawAsteroids() {
 
 void updateAsteroids() {
 	struct Level currentLevelInfo = levels[currentLevel - 1];
-    for (int i = 0; i < currentLevelInfo.numAsteroids; i++) {
+    for (int i = 0; i < number_of_asteroids; i++) {
         asteroids[i].y += asteroids[i].speed;
 
+		if (asteroids[i].y > number_of_asteroids * (random(30,70)) && number_of_asteroids < currentLevelInfo.numAsteroids){
+			number_of_asteroids++;
+		}
         // If asteroid goes off the screen, respawn it at the top
         if (asteroids[i].y > 150) {
 			playNote(B4);
@@ -260,10 +260,11 @@ void updateAsteroids() {
 				}
 			}
 			asteroids[i].y = 0;
-			if(asteroids[i].speed < currentLevelInfo.maxAsteroidSpeed && (random(1,3) == 1)) {
-				asteroids[i].speed += 1;
-			}
         }
+
+		if(asteroids[i].speed < currentLevelInfo.maxAsteroidSpeed) {
+			asteroids[i].speed = currentLevelInfo.maxAsteroidSpeed;
+		}
     }
 }
 
@@ -377,6 +378,8 @@ void gameCrashed() {
 
 void levelUp(){
 	currentLevel++;
+	clearAsteroids();
+	resetAsteroids();
 	playNote(A3);
 	delay(500);
 	playNote(0);
@@ -386,47 +389,54 @@ void levelUp(){
 	delay(5000);
 	printText(levels[currentLevel-1].levelName, 74, 5, BLUE, 0);
 	fillRectangle(15,20,150,40,0);
+	}
+
+void resetAsteroids(){
+	for(int i = 0; i < number_of_asteroids; i++){
+		asteroids[i].y = 0;
+	}
+	number_of_asteroids = 1;
 }
 
-void loadGame(int level) {
-    if (level >= 1 && level <= sizeof(levels) / sizeof(levels[0])) {
-        currentLevel = level;
+// void loadGame(int level) {
+//     if (level >= 1 && level <= sizeof(levels) / sizeof(levels[0])) {
+//         currentLevel = level;
 
-        setupGame();
+//         setupGame();
 
-        clear();
-        gameLoop();
-    } else {
-        printText("Invalid Level Selection", 10, 60, RED, 0);
-        delay(2000); // Wait 2 seconds
-        clear();
-        menu(); // Return to the menu after an invalid level selection
-    }
-}
+//         clear();
+//         gameLoop();
+//     } else {
+//         printText("Invalid Level Selection", 10, 60, RED, 0);
+//         delay(2000); // Wait 2 seconds
+//         clear();
+//         menu(); // Return to the menu after an invalid level selection
+//     }
+// }
 
-void saveHighestLevel(int level) {
-    HAL_Init();
-    FLASH_EraseInitTypeDef eraseInitStruct;
-    uint32_t sectorError;
-    HAL_StatusTypeDef status;
-    eraseInitStruct.TypeErase = FLASH_TYPEERASE_SECTORS;
-    eraseInitStruct.Sector = FLASH_SECTOR_0;
-    eraseInitStruct.NbSectors = 1;
+// void saveHighestLevel(int level) {
+//     HAL_Init();
+//     FLASH_EraseInitTypeDef eraseInitStruct;
+//     uint32_t sectorError;
+//     HAL_StatusTypeDef status;
+//     eraseInitStruct.TypeErase = FLASH_TYPEERASE_SECTORS;
+//     eraseInitStruct.Sector = FLASH_SECTOR_0;
+//     eraseInitStruct.NbSectors = 1;
 
-    HAL_FLASH_Unlock();
+//     HAL_FLASH_Unlock();
 
-    status = HAL_FLASHEx_Erase(&eraseInitStruct, &sectorError);
-    if (status == HAL_OK) {
-        status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, FLASH_BASE + 0x40000, level);
-    }
-    HAL_FLASH_Lock();
-}
+//     status = HAL_FLASHEx_Erase(&eraseInitStruct, &sectorError);
+//     if (status == HAL_OK) {
+//         status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, FLASH_BASE + 0x40000, level);
+//     }
+//     HAL_FLASH_Lock();
+// }
 
-// Function to load the highest completed level from non-volatile memory
-int loadHighestLevel() {	
-    HAL_Init();
+// // Function to load the highest completed level from non-volatile memory
+// int loadHighestLevel() {	
+//     HAL_Init();
 
-    int highestLevel = *(__IO int*)HIGHEST_LEVEL_ADDRESS;
+//     int highestLevel = *(__IO int*)HIGHEST_LEVEL_ADDRESS;
 
-    return highestLevel;
-}
+//     return highestLevel;
+// }

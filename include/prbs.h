@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
-uint32_t prbs(void);
+uint32_t prbs();
 uint32_t random(uint32_t lower,uint32_t upper)
 {
     return (prbs()%(upper-lower))+lower;

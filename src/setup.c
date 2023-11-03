@@ -1,4 +1,5 @@
 #include <stm32f031x6.h>
+#include <setup.h>
 
 volatile uint32_t milliseconds;
 

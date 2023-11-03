@@ -1,10 +1,9 @@
 #include <stm32f031x6.h>
-// #include "stm32f0xx_hal.h"
 #include <stdbool.h>
 #include "display.h"
-#include <prbs.c>
-#include <sound.c>
-#include <setup.c>
+#include "prbs.h"
+#include "sound.h"
+#include "setup.h"
 
 #define MAX_ASTEROIDS 8
 #define MAX_ASTEROID_SPEED 8
@@ -33,6 +32,7 @@ void updateRocketPosition(int hmoved, int vmoved, int toggle);
 bool checkCollision();
 void levelUp();
 void resetAsteroids();
+bool checkHighScore();
 
 // void loadGame(int level);
 // void saveHighestLevel(int level);;
@@ -84,8 +84,11 @@ const uint16_t explosion[]= {
 	0,0,57091,0,0,0,0,0,0,40707,0,0,0,0,40707,40707,14602,31490,0,7683,56835,0,0,0,48899,40707,0,0,6161,22553,0,56593,23555,0,0,40707,48899,40707,55818,47626,30752,38432,5409,31520,31264,0,24323,57091,0,7427,63505,46112,30240,30496,22560,30752,15136,31257,40451,57091,48899,47122,22801,54816,38432,30240,30240,37664,46368,23065,6922,40707,55818,7435,46873,37920,30752,38176,38176,37664,30496,62752,38169,7435,40707,6923,22802,5401,38432,30496,37920,29984,38688,5913,37408,47378,0,0,7427,7698,55840,46880,30496,55840,62744,54809,0,45600,0,0,48899,40707,15890,32281,31264,23065,39186,30994,0,0,0,0,48899,57091,32515,0,7939,63762,5906,55818,57091,0,0,0,48899,32515,0,0,57091,40707,48899,0,0,0,
 };
 
+uint16_t high_score = 209;
+
 uint16_t number_of_asteroids;
-uint16_t score;
+
+uint16_t score = 0;
 
 uint16_t rocket_x;
 uint16_t rocket_y;
@@ -111,10 +114,6 @@ void menu() {
     printTextX2("Space", 32, 30, YELLOW, 0);
     printTextX2("Dodger", 28, 50, YELLOW, 0);
     printText("Dodge the Meteors", 5, 80, RED, 0);
-    
-    // Display the highest completed level on the menu screen
-    // char highestLevelText[20];
-    // printText(highestLevelText, 10, 80, GREEN, 0);
     
     int counter = 0;
     while(1){
@@ -175,18 +174,17 @@ void countdown() {
 
 void gameLoop() {
 	countdown();
-
+	
 	int toggle = 0;
 	int hmoved = 0;
 	int vmoved = 0;
-	//char levelText[16];
 
 	struct Level currentLevelInfo;
-
 	score = 0;
 	uint16_t previous_score = 1;
 	number_of_asteroids = 1;
 	bool game_running = true;
+	bool new_high_score = false;
 
 	currentLevel = 0;
 
@@ -212,6 +210,18 @@ void gameLoop() {
 		if (score >= previous_score + (currentLevelInfo.numAsteroids + currentLevel) * 10  && currentLevel <= 9) {
 			levelUp();
 			previous_score = score;
+		}
+
+		if(checkHighScore() && new_high_score == false){
+			new_high_score == true;
+			clearAsteroids();
+			resetAsteroids();
+			playNote(A3);
+			delay(500);
+			playNote(0);
+			fillRectangle(74,5,70,10,0);
+			printText("Congratulations!!", 15, 20, RED, 0);
+			printText("New High Score", 15, 30, RED, 0);
 		}
 
 		handlePlayerInput(&hmoved, &vmoved);
@@ -415,45 +425,10 @@ void resetAsteroids(){
 	number_of_asteroids = 1;
 }
 
-// void loadGame(int level) {
-//     if (level >= 1 && level <= sizeof(levels) / sizeof(levels[0])) {
-//         currentLevel = level;
-
-//         setupGame();
-
-//         clear();
-//         gameLoop();
-//     } else {
-//         printText("Invalid Level Selection", 10, 60, RED, 0);
-//         delay(2000); // Wait 2 seconds
-//         clear();
-//         menu(); // Return to the menu after an invalid level selection
-//     }
-// }
-
-// void saveHighestLevel(int level) {
-//     HAL_Init();
-//     FLASH_EraseInitTypeDef eraseInitStruct;
-//     uint32_t sectorError;
-//     HAL_StatusTypeDef status;
-//     eraseInitStruct.TypeErase = FLASH_TYPEERASE_SECTORS;
-//     eraseInitStruct.Sector = FLASH_SECTOR_0;
-//     eraseInitStruct.NbSectors = 1;
-
-//     HAL_FLASH_Unlock();
-
-//     status = HAL_FLASHEx_Erase(&eraseInitStruct, &sectorError);
-//     if (status == HAL_OK) {
-//         status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, FLASH_BASE + 0x40000, level);
-//     }
-//     HAL_FLASH_Lock();
-// }
-
-// // Function to load the highest completed level from non-volatile memory
-// int loadHighestLevel() {	
-//     HAL_Init();
-
-//     int highestLevel = *(__IO int*)HIGHEST_LEVEL_ADDRESS;
-
-//     return highestLevel;
-// }
+bool checkHighScore(){
+	if(score > high_score + 1){
+		high_score = score;
+		return true;
+	}
+	else return false;
+}

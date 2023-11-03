@@ -153,7 +153,7 @@ void DCHigh()
 }
 void initSPI(void)
 {
-	uint32_t  drain_count,drain;
+	uint32_t  drain_count;
 	
 	RCC->APB2ENR |= (1 << 12);		// turn on SPI1 	
 	
@@ -164,13 +164,15 @@ void initSPI(void)
     GPIOA->AFR[0] &= 0x000fffff;		     // select Alt. Function 0
 	
 	// Now configure the SPI interface	
-	drain = SPI1->SR;				// dummy read of SR to clear MODF	
+	uint32_t drain = ((SPI_TypeDef *) (0x40000000UL + 0x00013000UL))->SR;				// dummy read of SR to clear MODF	
 	// enable SSM, set SSI, enable SPI, PCLK/2, MSB First Master, Clock = 1 when idle
 	SPI1->CR1 = (1 << 9)+(1 << 8)+(1 << 6)+(1 << 2) +(1 << 1) + (1 << 0); // Might get away with removing bit 3 here and get 24MHz clock
 	SPI1->CR2 = (1 << 10)+(1 << 9)+(1 << 8); 	// configure for 8 bit operation
    
-  for (drain_count = 0; drain_count < 32; drain_count++)
-	drain = transferSPI8((uint8_t)0x00);
+    for (drain_count = 0; drain_count < 32; drain_count++){
+        drain = transferSPI8((uint8_t)0x00);
+    }
+
 }
 
 uint8_t transferSPI8(uint8_t data)
@@ -182,8 +184,10 @@ uint8_t transferSPI8(uint8_t data)
     while (((SPI1->SR & (1 << 7))!=0)&&(Timeout--));
     *preg = data;
     Timeout = 1000000;
-    while (((SPI1->SR & (1 << 7))!=0)&&(Timeout--));        
-	  ReturnValue = *preg;	
+    while (((SPI1->SR & (1 << 7))!=0)&&(Timeout>0)){
+        Timeout--;
+    }       
+	ReturnValue = *preg;	
     return ReturnValue;
 }
 
@@ -195,8 +199,10 @@ uint16_t transferSPI16(uint16_t data)
     while (((SPI1->SR & (1 << 7))!=0)&&(Timeout--));
     SPI1->DR = data;
     Timeout = 1000000;
-    while (((SPI1->SR & (1 << 7))!=0)&&(Timeout--));        
-	  ReturnValue = SPI1->DR;
+    while (((SPI1->SR & (1 << 7))!=0)&&(Timeout>0)){
+        Timeout--;
+    }       
+	ReturnValue = SPI1->DR;
 	
     return (uint16_t)ReturnValue;
 }

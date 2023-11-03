@@ -51,19 +51,22 @@ struct Level {
 	char levelName[10];
 	char levelmessage[20];
 	int levelScreenPosition;
+	char levelDeathMessage[20];	
+	int deathMessageScreenPosition;
 // we can add anything else that we need per level
 };
 
 // Define an array of levels up to 5 levels
 struct Level levels[] = {
-    {1, 2, "Level 1", "Good Start!", 30},  // Level 1
-    {2, 3, "Level 2", "Getting There!", 25},  // Level 2
-	{3, 4, "Level 3", "This all you got?", 20},  // Level 3
-	{4, 5, "Level 4", "Okay, not too bad", 20},  // Level 4
-	{5, 6, "Level 5", "Alright this is crazy", 15},  // Level 5
-	{6, 7, "Level 6", "How???", 35},  // Level 6
-	{7, 7, "Level 7", "You're too good", 25},  // Level 7
-	{7, 8, "Level 8", "I'm very impressed!", 20},  // Level 8
+	{1, 3, "Level 0", "N/A", 30, "Embarrassing...", 10},  // Level 0
+    {2, 3, "Level 1", "Think you're good?", 2, "Were you trying?", 10},  // Level 1
+    {3, 4, "Level 2", "Getting There!", 15, "Not the worst.", 15},  // Level 2
+	{4, 5, "Level 3", "This all you got?", 5, "Try again I guess", 1},  // Level 3
+	{5, 6, "Level 4", "Okay, not too bad", 5, "Not bad, go again", 5},  // Level 4
+	{6, 7, "Level 5", "This is crazy", 16, "I'm Impressed", 15},  // Level 5
+	{7, 8, "Level 6", "How???", 40, "You are quite good", 2},  // Level 6
+	{8, 9, "Level 7", "You're too good", 9, "Im getting worried", 2},  // Level 7
+	{9, 10, "Level 8", "I'm very impressed!", 1, "That was Insane!!", 5},  // Level 8
 };
 
 int currentLevel; // Initializes the game level variable 
@@ -185,7 +188,7 @@ void gameLoop() {
 	number_of_asteroids = 1;
 	bool game_running = true;
 
-	currentLevel = 1;
+	currentLevel = 0;
 
 	rocket_x = 53;
 	rocket_y = 120;
@@ -198,7 +201,7 @@ void gameLoop() {
 	while (game_running) {
 		playNote(0);
 		hmoved = vmoved = 0;
-		currentLevelInfo = levels[currentLevel - 1];
+		currentLevelInfo = levels[currentLevel];
 		// Print the Level and Score
 		//snprintf(levelText, sizeof(levelText), "Level %d", currentLevel);
 		printText(currentLevelInfo.levelName, 74, 5, BLUE, 0);
@@ -207,7 +210,7 @@ void gameLoop() {
 		updateAsteroids();
 
 		// This is a way to increase the number of asteroids after the score reaches certain points
-		if (score >= (previous_score + 5) * 2 && currentLevel <= 5) {
+		if (score >= previous_score + (currentLevelInfo.numAsteroids + currentLevel) * 10  && currentLevel <= 9) {
 			levelUp();
 			previous_score = score;
 		}
@@ -241,7 +244,7 @@ void initAsteroids() {
 
 // Function to draw an asteroid at a specific position
 void drawAsteroids() {
-	struct Level currentLevelInfo = levels[currentLevel - 1];
+	struct Level currentLevelInfo = levels[currentLevel];
 	for(int i = 0; i < number_of_asteroids; i++) {
 		clearAsteroid(asteroids[i].x, asteroids[i].y - asteroids[i].speed);
 		putImage(asteroids[i].x, asteroids[i].y, 10, 10, asteroid, 0, 0); // Adjust the size and image as needed
@@ -251,7 +254,7 @@ void drawAsteroids() {
 }
 
 void updateAsteroids() {
-	struct Level currentLevelInfo = levels[currentLevel - 1];
+	struct Level currentLevelInfo = levels[currentLevel];
     for (int i = 0; i < number_of_asteroids; i++) {
         asteroids[i].y += asteroids[i].speed;
 
@@ -259,7 +262,7 @@ void updateAsteroids() {
 			number_of_asteroids++;
 		}
         // If asteroid goes off the screen, respawn it at the top
-        if (asteroids[i].y > random(150,200)) {
+        if (asteroids[i].y > 150) {
 			playNote(B4);
 			score++;
 			printNumber(score, 5, 5, BLUE, 0);
@@ -320,7 +323,7 @@ void updateRocketPosition(int hmoved, int vmoved, int toggle) {
 
 bool checkCollision() {
 	bool is_crashed = false;
-	struct Level currentLevelInfo = levels[currentLevel - 1];
+	struct Level currentLevelInfo = levels[currentLevel];
 
 	for(int i = 0; i < currentLevelInfo.numAsteroids; i++) {
 		if(isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y+10) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y+10) ){
@@ -354,7 +357,9 @@ void gameCrashed() {
 	printTextX2("CRASHED", 20, 25, RED, 0);
 	printText("Final score:", 5, 45, BLUE, 0);
 	printNumber(score, 88, 45, BLUE, 0);
-	delay(2000);
+	printText(levels[currentLevel].levelDeathMessage, levels[currentLevel].deathMessageScreenPosition, 60, ORANGE, 0);
+	delay(4000);
+	fillRectangle(0, 60, 130, 10, 0);
 	fillRectangle(rocket_x, rocket_y, 12, 12, 0);
 	printText("To Restart", 28, 80, YELLOW, 0);
 	int counter = 0;
@@ -394,16 +399,17 @@ void levelUp(){
 	clearAsteroids();
 	resetAsteroids();
 	printNumber(score, 5, 5, BLUE, 0);
-	printText(levels[currentLevel-1].levelName, 74, 5, BLUE, 0);
+	printText(levels[currentLevel].levelName, 74, 5, BLUE, 0);
 	playNote(A3);
 	delay(500);
 	playNote(0);
 	fillRectangle(74,5,70,10,0);
 	printText("You've reached", 15, 20, RED, 0);
-	printTextX2(levels[currentLevel-1].levelName, 20, 40, RED, 0);
+	printTextX2(levels[currentLevel].levelName, 20, 40, RED, 0);
+	printText(levels[currentLevel].levelmessage, levels[currentLevel].levelScreenPosition, 70, ORANGE, 0);
 	delay(5000);
-	printText(levels[currentLevel-1].levelName, 74, 5, BLUE, 0);
-	fillRectangle(15,20,150,40,0);
+	printText(levels[currentLevel].levelName, 74, 5, BLUE, 0);
+	fillRectangle(1,10,150,100,0);
 	}
 
 void resetAsteroids(){

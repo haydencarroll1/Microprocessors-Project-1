@@ -48,8 +48,7 @@ Space Dodger provides the following features:
 - Player rocket that can be moved using buttons.
 - Falling asteroids with varying speeds.
 - Collision detection and game over screen.
-- Level progression and high-score tracking.
-- Ability to start a new game or load a saved game.
+- Level progression
 
 ## Game Logic
 
@@ -62,11 +61,7 @@ Space Dodger consists of different game levels, each defined by a structure that
 3. Start the game by pressing a button when prompted in the menu.
 4. Control the rocket's movement using the left and right buttons.
 5. Dodge the falling asteroids to increase your score.
-6. If your rocket collides with an asteroid, the game will display a game over message and allow you to restart at the same level or from the beginning.
-
-## Contributing
-
-Contributions to Space Dodger are welcome. Feel free to create issues, suggest improvements, or submit pull requests to enhance the game and its features. Please follow the standard code of conduct and contribution guidelines when contributing to this project.
+6. If your rocket collides with an asteroid, the game will display a game over message and allow you to restart.
 
 Enjoy playing Space Dodger!
 

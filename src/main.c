@@ -203,7 +203,6 @@ void gameLoop() {
 		hmoved = vmoved = 0;
 		currentLevelInfo = levels[currentLevel];
 		// Print the Level and Score
-		//snprintf(levelText, sizeof(levelText), "Level %d", currentLevel);
 		printText(currentLevelInfo.levelName, 74, 5, BLUE, 0);
 
 		drawAsteroids();
@@ -302,7 +301,7 @@ void handlePlayerInput(int *hmoved, int *vmoved){
 		}
 	}
 	if ( (GPIOA->IDR & (1 << 8)) == 0) { // up pressed		
-		if (rocket_y > 55) {
+		if (rocket_y > 68) {
 			rocket_y -= 2;
 			*vmoved = 1;
 		}
@@ -317,9 +316,6 @@ void updateRocketPosition(int hmoved, int vmoved, int toggle) {
 		putImage(rocket_x,rocket_y,12,16,rocket,0,0);
 	}
 }
-// void drawRocket(uint16_t rocket_x, uint16_t rocket_y, uint16_t hmoved, uint16_t toggle){
-
-// }
 
 bool checkCollision() {
 	bool is_crashed = false;
@@ -358,7 +354,7 @@ void gameCrashed() {
 	printText("Final score:", 5, 45, BLUE, 0);
 	printNumber(score, 88, 45, BLUE, 0);
 	printText(levels[currentLevel].levelDeathMessage, levels[currentLevel].deathMessageScreenPosition, 60, ORANGE, 0);
-	delay(4000);
+	delay(3000);
 	fillRectangle(0, 60, 130, 10, 0);
 	fillRectangle(rocket_x, rocket_y, 12, 12, 0);
 	printText("To Restart", 28, 80, YELLOW, 0);

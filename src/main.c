@@ -223,7 +223,7 @@ void gameLoop() {
 			fillRectangle(74,5,70,10,0);
 			printText("Congratulations!!", 10, 20, RED, 0);
 			printText("New High Score", 15, 30, RED, 0);
-			printNumberX2(high_score, 25, 45, BLUE, 0);
+			printNumberX2(high_score, 30, 45, BLUE, 0);
 			delay(500);
 			playNote(0);
 			delay(2000);

@@ -58,10 +58,10 @@ struct Level {
 
 // Define an array of levels up to 5 levels
 struct Level levels[] = {
-	{1, 3, "Level 0", "N/A", 30, "Embarrassing...", 10},  // Level 0
-    {2, 3, "Level 1", "Think you're good?", 2, "Were you trying?", 10},  // Level 1
-    {3, 4, "Level 2", "Getting There!", 15, "Not the worst.", 15},  // Level 2
-	{4, 5, "Level 3", "This all you got?", 5, "Try again I guess", 1},  // Level 3
+	{5, 2, "Level 0", "N/A", 30, "Embarrassing...", 10},  // Level 0
+    {5, 3, "Level 1", "Think you're good?", 2, "Were you trying?", 10},  // Level 1
+    {5, 4, "Level 2", "Getting There!", 15, "Not the worst.", 15},  // Level 2
+	{5, 5, "Level 3", "This all you got?", 5, "Try again I guess", 1},  // Level 3
 	{5, 6, "Level 4", "Okay, not too bad", 5, "Not bad, go again", 5},  // Level 4
 	{6, 7, "Level 5", "This is crazy", 16, "I'm Impressed", 15},  // Level 5
 	{7, 8, "Level 6", "How???", 40, "You are quite good", 2},  // Level 6
@@ -74,7 +74,7 @@ int currentLevel; // Initializes the game level variable
 // Declare an array to store asteroids
 struct Asteroid asteroids[MAX_ASTEROIDS];
 
-const uint16_t asteroid[]= {
+const uint16_t asteroid1[]= {
 	0,0,5220,38252,55180,59449,3683,12627,0,0,0,54380,29267,44866,12387,44635,4427,37467,45675,0,21628,13412,60490,36170,10033,1841,60746,52298,45387,44618,12098,60754,51257,42801,9777,10041,9777,10554,61242,61258,20307,27458,18233,42545,26161,1585,1577,10554,44090,27186,27970,59705,50993,58921,9777,1585,9777,34353,43057,35642,58929,51257,34609,17969,9777,9777,34353,18481,2362,36170,36658,11586,10289,26161,34609,9777,50993,19002,11834,12346,0,61002,35650,34865,59185,51257,19258,36154,44602,0,0,0,3386,61002,35394,45122,44858,20530,0,0,
 };
 const uint16_t rocket[]= {
@@ -83,8 +83,11 @@ const uint16_t rocket[]= {
 const uint16_t explosion[]= {
 	0,0,57091,0,0,0,0,0,0,40707,0,0,0,0,40707,40707,14602,31490,0,7683,56835,0,0,0,48899,40707,0,0,6161,22553,0,56593,23555,0,0,40707,48899,40707,55818,47626,30752,38432,5409,31520,31264,0,24323,57091,0,7427,63505,46112,30240,30496,22560,30752,15136,31257,40451,57091,48899,47122,22801,54816,38432,30240,30240,37664,46368,23065,6922,40707,55818,7435,46873,37920,30752,38176,38176,37664,30496,62752,38169,7435,40707,6923,22802,5401,38432,30496,37920,29984,38688,5913,37408,47378,0,0,7427,7698,55840,46880,30496,55840,62744,54809,0,45600,0,0,48899,40707,15890,32281,31264,23065,39186,30994,0,0,0,0,48899,57091,32515,0,7939,63762,5906,55818,57091,0,0,0,48899,32515,0,0,57091,40707,48899,0,0,0,
 };
+const uint16_t asteroid[]= {
+0,0,50473,50473,33560,33560,50473,50473,0,0,0,50473,9513,9513,33560,57608,57608,33560,50473,0,50473,57608,9513,9249,49944,9249,16912,57608,50473,50473,50473,9513,16912,49944,0,49944,49944,9249,57608,50473,33560,57608,57608,0,0,0,16912,9249,57608,33560,50473,57608,9249,49944,0,0,49944,57608,57608,33560,50473,33560,16912,58929,49944,49944,57608,57608,33560,50473,50473,33560,33560,26425,16912,9249,57608,33560,57608,50473,0,50473,33560,57608,33825,33560,33560,57608,50473,0,0,0,50473,50473,33560,33560,50473,50473,0,0,
+};
 
-uint16_t high_score = 209;
+uint16_t high_score = 411;
 
 uint16_t number_of_asteroids;
 
@@ -213,15 +216,18 @@ void gameLoop() {
 		}
 
 		if(checkHighScore() && new_high_score == false){
-			new_high_score == true;
+			new_high_score = true;
 			clearAsteroids();
 			resetAsteroids();
 			playNote(A3);
+			fillRectangle(74,5,70,10,0);
+			printText("Congratulations!!", 10, 20, RED, 0);
+			printText("New High Score", 15, 30, RED, 0);
+			printNumberX2(high_score, 25, 45, BLUE, 0);
 			delay(500);
 			playNote(0);
-			fillRectangle(74,5,70,10,0);
-			printText("Congratulations!!", 15, 20, RED, 0);
-			printText("New High Score", 15, 30, RED, 0);
+			delay(2000);
+			fillRectangle(10, 20, 120, 45, 0);
 		}
 
 		handlePlayerInput(&hmoved, &vmoved);
@@ -426,7 +432,7 @@ void resetAsteroids(){
 }
 
 bool checkHighScore(){
-	if(score > high_score + 1){
+	if(score > high_score){
 		high_score = score;
 		return true;
 	}

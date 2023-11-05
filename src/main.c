@@ -5,17 +5,14 @@
 #include "sound.h"
 #include "setup.h"
 
-#define MAX_ASTEROIDS 8
-#define MAX_ASTEROID_SPEED 8
+#define MAX_ASTEROIDS 20
+#define MAX_ASTEROID_SPEED 10
 
 #define YELLOW RGBToWord(246, 235, 20)
 #define GREEN RGBToWord(79, 175, 68)
 #define ORANGE RGBToWord(255, 149, 38)
 #define RED RGBToWord(239, 68, 35)
 #define BLUE RGBToWord(42, 52, 146)
-
-// #define FLASH_SECTOR     FLASH_SECTOR_7 // Example sector, change to the appropriate sector
-// #define HIGHEST_LEVEL_ADDRESS 0x0800C000 // Address of the highest completed level in flash memory
 
 void setupGame();
 void initAsteroids();
@@ -33,6 +30,7 @@ bool checkCollision();
 void levelUp();
 void resetAsteroids();
 bool checkHighScore();
+void printHighScore();
 
 // void loadGame(int level);
 // void saveHighestLevel(int level);;
@@ -58,15 +56,15 @@ struct Level {
 
 // Define an array of levels up to 5 levels
 struct Level levels[] = {
-	{5, 2, "Level 0", "N/A", 30, "Embarrassing...", 10},  // Level 0
-    {5, 3, "Level 1", "Think you're good?", 2, "Were you trying?", 10},  // Level 1
-    {5, 4, "Level 2", "Getting There!", 15, "Not the worst.", 15},  // Level 2
-	{5, 5, "Level 3", "This all you got?", 5, "Try again I guess", 1},  // Level 3
-	{5, 6, "Level 4", "Okay, not too bad", 5, "Not bad, go again", 5},  // Level 4
-	{6, 7, "Level 5", "This is crazy", 16, "I'm Impressed", 15},  // Level 5
-	{7, 8, "Level 6", "How???", 40, "You are quite good", 2},  // Level 6
-	{8, 9, "Level 7", "You're too good", 9, "Im getting worried", 2},  // Level 7
-	{9, 10, "Level 8", "I'm very impressed!", 1, "That was Insane!!", 5},  // Level 8
+	{5, 3, "Level 1", "N/A", 30, "Embarrassing...", 10},  // Level 1
+    {6, 3, "Level 2", "Think you're good?", 2, "Were you trying?", 10},  // Level 2
+    {7, 4, "Level 3", "Getting There!", 15, "Not the worst.", 15},  // Level 3
+	{7, 5, "Level 4", "This all you got?", 5, "Try again I guess", 1},  // Level 4
+	{7, 6, "Level 5", "Okay, not too bad", 5, "Not bad, go again", 5},  // Level 5
+	{7, 7, "Level 6", "This is crazy", 16, "I'm Impressed", 15},  // Level 6
+	{10, 8, "Level 7", "How???", 40, "You are quite good", 2},  // Level 7
+	{11, 9, "Level 8", "You're too good", 9, "Im getting worried", 2},  // Level 8 
+	{12, 10, "Level 9", "I'm very impressed!", 1, "That was Insane!!", 5},  // Level 9
 };
 
 int currentLevel; // Initializes the game level variable 
@@ -217,17 +215,7 @@ void gameLoop() {
 
 		if(checkHighScore() && new_high_score == false){
 			new_high_score = true;
-			clearAsteroids();
-			resetAsteroids();
-			playNote(A3);
-			fillRectangle(74,5,70,10,0);
-			printText("Congratulations!!", 10, 20, RED, 0);
-			printText("New High Score", 15, 30, RED, 0);
-			printNumberX2(high_score, 30, 45, BLUE, 0);
-			delay(500);
-			playNote(0);
-			delay(2000);
-			fillRectangle(10, 20, 120, 45, 0);
+			printHighScore();
 		}
 
 		handlePlayerInput(&hmoved, &vmoved);
@@ -248,7 +236,7 @@ void initAsteroids() {
         asteroids[i].x = 5 + random(1,10) * 12; // Random X position
 		for(int j; j < MAX_ASTEROIDS; j++) {
 			if(asteroids[i].x == asteroids[j].x) {
-				asteroids[i].x = 5 + (random(1,10) * 12);
+				asteroids[i].x = 3 + (random(0,10) * 12);
 				j = 0;
 			}
 		}
@@ -273,7 +261,7 @@ void updateAsteroids() {
     for (int i = 0; i < number_of_asteroids; i++) {
         asteroids[i].y += asteroids[i].speed;
 
-		if (asteroids[i].y > number_of_asteroids * (random(40,100)) && number_of_asteroids < currentLevelInfo.numAsteroids){
+		if (asteroids[i].y > number_of_asteroids * (random(200/currentLevelInfo.numAsteroids,400/currentLevelInfo.numAsteroids)) && number_of_asteroids < currentLevelInfo.numAsteroids){
 			number_of_asteroids++;
 		}
         // If asteroid goes off the screen, respawn it at the top
@@ -282,10 +270,11 @@ void updateAsteroids() {
 			score++;
 			printNumber(score, 5, 5, BLUE, 0);
 			fillRectangle(asteroids[i].x, asteroids[i].y - asteroids[i].speed, 10, 10, 0);
-			asteroids[i].x = random(1,10) * 12;
+			asteroids[i].x = 3 + random(0,10) * 12;
 			for(int j = 0; j < currentLevelInfo.numAsteroids; j++) {
 				if(asteroids[i].x == asteroids[j].x && i != j) {
-					asteroids[i].x = random(1,10) * 12;
+					asteroids[i].x = 3 + random(0,10) * 12;
+					j = 0;
 				}
 			}
 			asteroids[i].y = 0;
@@ -369,20 +358,22 @@ void gameCrashed() {
 	printTextX2("CRASHED", 20, 25, RED, 0);
 	printText("Final score:", 5, 45, BLUE, 0);
 	printNumber(score, 88, 45, BLUE, 0);
-	printText(levels[currentLevel].levelDeathMessage, levels[currentLevel].deathMessageScreenPosition, 60, ORANGE, 0);
+	printText("High score:", 8, 58, YELLOW, 0);
+	printNumber(high_score, 85, 58, YELLOW, 0);
+	printText(levels[currentLevel].levelDeathMessage, levels[currentLevel].deathMessageScreenPosition, 70, ORANGE, 0);
 	delay(3000);
-	fillRectangle(0, 60, 130, 10, 0);
+	fillRectangle(0, 70, 130, 10, 0);
 	fillRectangle(rocket_x, rocket_y, 12, 12, 0);
-	printText("To Restart", 28, 80, YELLOW, 0);
+	printText("To Restart", 28, 85, YELLOW, 0);
 	int counter = 0;
 	while(1) {
 		counter++;
 		if(counter < 50) {
-			printText("Press < or >", 23, 65, ORANGE, 0);
-			printText("Press V to quit", 10, 100, ORANGE, 0);
+			printText("Press < or >", 23, 73, ORANGE, 0);
+			printText("Press V to quit", 10, 105, ORANGE, 0);
 		}
 		else if(counter<80) {
-			fillRectangle(20, 65, 100, 10, 0);
+			fillRectangle(20, 73, 100, 10, 0);
 		}
 		else {
 			counter = 0;
@@ -437,4 +428,18 @@ bool checkHighScore(){
 		return true;
 	}
 	else return false;
+}
+
+void printHighScore(){
+	clearAsteroids();
+	resetAsteroids();
+	playNote(A3);
+	fillRectangle(74,5,70,10,0);
+	printText("Congratulations!!", 10, 20, RED, 0);
+	printText("New High Score", 15, 30, RED, 0);
+	printNumberX2(high_score, 30, 45, BLUE, 0);
+	delay(500);
+	playNote(0);
+	delay(2000);
+	fillRectangle(10, 20, 120, 45, 0);
 }

@@ -56,7 +56,7 @@ struct Level {
 
 // Define an array of levels up to 5 levels
 struct Level levels[] = {
-	{5, 3, "Level 1", "N/A", 30, "Embarrassing...", 10},  // Level 1
+	{5, 2, "Level 1", "N/A", 30, "Embarrassing...", 10},  // Level 1
     {6, 3, "Level 2", "Think you're good?", 2, "Were you trying?", 10},  // Level 2
     {7, 4, "Level 3", "Getting There!", 15, "Not the worst.", 15},  // Level 3
 	{7, 5, "Level 4", "This all you got?", 5, "Try again I guess", 1},  // Level 4
@@ -225,7 +225,7 @@ void gameLoop() {
 			game_running = false;
 		}
 
-		delay(30);
+		delay(35);
     }
 
 	gameCrashed();
@@ -234,7 +234,8 @@ void gameLoop() {
 void initAsteroids() {
     for (int i = 0; i < MAX_ASTEROIDS; i++) {
         asteroids[i].x = 5 + random(1,10) * 12; // Random X position
-		for(int j; j < MAX_ASTEROIDS; j++) {
+		int j;
+		for(j; j < MAX_ASTEROIDS; j++) {
 			if(asteroids[i].x == asteroids[j].x) {
 				asteroids[i].x = 3 + (random(0,10) * 12);
 				j = 0;
@@ -327,7 +328,7 @@ bool checkCollision() {
 	struct Level currentLevelInfo = levels[currentLevel];
 
 	for(int i = 0; i < currentLevelInfo.numAsteroids; i++) {
-		if(isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x,rocket_y+10) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y+10) ){
+		if(isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+4,rocket_y+2) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+7,rocket_y+2) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x + 1,rocket_y + 10) || isInside(asteroids[i].x,asteroids[i].y,10,10,rocket_x+10,rocket_y+10) ){
 			is_crashed = true;					
 			break;
 		}

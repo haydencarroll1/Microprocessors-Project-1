@@ -15,12 +15,13 @@
 #define BLUE RGBToWord(42, 52, 146)
 
 void setupGame();
+void menu();
+void menuInterface();
 void initAsteroids();
 void updateAsteroids();
 void drawAsteroids();
 void clearAsteroid(uint16_t x,uint16_t y);
 void clearAsteroids();
-void menu();
 void gameCrashed();
 void countdown();
 void gameLoop();
@@ -31,10 +32,6 @@ void levelUp();
 void resetAsteroids();
 bool checkHighScore();
 void printHighScore();
-
-// void loadGame(int level);
-// void saveHighestLevel(int level);;
-// int loadHighestLevel();
 
 struct Asteroid{
     uint16_t x;
@@ -98,7 +95,7 @@ uint16_t old_rocket_y;
 
 int main() {
     setupGame();
-    menu();
+	menu();
 	return 0;
 }
 
@@ -116,11 +113,23 @@ void menu() {
     printTextX2("Dodger", 28, 50, YELLOW, 0);
     printText("Dodge the Meteors", 5, 80, RED, 0);
     
-    int counter = 0;
-    while(1){
+	menuInterface();
+
+    clear();
+    delay(20);
+    gameLoop();
+}
+
+void menuInterface(){
+	int counter = 0;
+	int menu_selection = 0;
+
+	while(true){
         counter++;
         if(counter < 50) {
             printText("Press < or >", 23, 100, ORANGE, 0);
+			printText("Choose difficulty", 23, 105, ORANGE, 0);
+			printText("Settings", 23, 110, ORANGE, 0);
         }
         else if(counter < 80) {
             fillRectangle(23, 100, 210, 10, 0);
@@ -134,11 +143,17 @@ void menu() {
             break;
         }
 
+		if ( (GPIOA->IDR & (1 << 11)) == 0) {
+			if(menu_selection < 2){
+				menu_selection++;
+			}
+			else{
+				menu_selection = 0;
+			}
+		} // down pressed
+
         delay(10);
     }
-    clear();
-    delay(20);
-    gameLoop();
 }
 
 
@@ -187,7 +202,7 @@ void gameLoop() {
 	bool game_running = true;
 	bool new_high_score = false;
 
-	currentLevel = 0;
+	currentLevel = 8;
 
 	rocket_x = 53;
 	rocket_y = 120;

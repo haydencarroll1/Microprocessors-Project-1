@@ -1,4 +1,5 @@
 #include <stm32f031x6.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include "display.h"
 #include "prbs.h"
@@ -32,7 +33,7 @@ void levelUp();
 void resetAsteroids();
 bool checkHighScore();
 void printHighScore();
-void handleSettings();
+void srand(unsigned int seed);
 
 struct Asteroid{
     uint16_t x;
@@ -66,6 +67,9 @@ struct Level levels[] = {
 };
 
 int currentLevel; // Initializes the game level variable 
+
+
+bool sound_enabled = true; // Initialize sound to be on
 
 // Declare an array to store asteroids
 struct Asteroid asteroids[MAX_ASTEROIDS];
@@ -222,7 +226,6 @@ void menuInterface() {
                     menu_selection = 0; // Set menu selection back to Play
                     break;
                 case 2:
-                    // Handle settings (Settings option)
 					clear();
                     break;
             }
@@ -239,28 +242,40 @@ void countdown() {
 	for(int i = 0; i < 4; i++){
 		if(i == 0) {
 			printTextX2("3", 58, 40, RED, 0);
+			if (sound_enabled == true) {
 			playNote(E3);
+			}
 		}
 		else if(i == 1) {
 			printTextX2("2", 58, 40, RED, 0);
+			if (sound_enabled == true) {
 			playNote(F3);
+			}
 		}
 		else if(i == 2) {
 			printTextX2("1", 58, 40, RED, 0);
+			if (sound_enabled == true) {
 			playNote(G3);
+			}
 		}
 		else if(i == 3) {
 			clear();
 			printTextX2("DODGE!", 30, 40, RED, 0);
+			if (sound_enabled == true) {
 			playNote(D3);
+			}
 			break;
 		}
 		delay(200);
+		if (sound_enabled == true) {
 		playNote(0);
+		}
 		delay(800);
 	}
 	delay(500);
+	if (sound_enabled == true) {
 	playNote(0);
+	}
 	clear();
 }
 
@@ -356,7 +371,9 @@ void updateAsteroids() {
 		}
         // If asteroid goes off the screen, respawn it at the top
         if (asteroids[i].y > 150) {
+			if (sound_enabled == true) {
 			playNote(B4);
+			}
 			score++;
 			printNumber(score, 5, 5, BLUE, 0);
 			fillRectangle(asteroids[i].x, asteroids[i].y - asteroids[i].speed, 10, 10, 0);
@@ -441,9 +458,13 @@ void clearAsteroids() {
 void gameCrashed() {
 	clear();
 	putImage(rocket_x,rocket_y,12,12,explosion,0,0);
+	if (sound_enabled == true) {
 	playNote(D2);
+	}
 	delay(1000);
+	if (sound_enabled == true) {
 	playNote(0);
+	}
 	printTextX2("You have", 15, 5, YELLOW, 0);
 	printTextX2("CRASHED", 20, 25, RED, 0);
 	printText("Final score:", 5, 45, BLUE, 0);
@@ -476,6 +497,7 @@ void gameCrashed() {
 		else if((GPIOA->IDR & (1 << 11)) == 0)
 		{
 			clear();
+			delay(1000);
 			menu();
 			// printText("Thank you for", 18, 5, BLUE, 0);
 			// printText("playing", 37, 15, BLUE, 0);
@@ -495,9 +517,13 @@ void levelUp(){
 	resetAsteroids();
 	printNumber(score, 5, 5, BLUE, 0);
 	printText(levels[currentLevel].levelName, 74, 5, BLUE, 0);
+	if (sound_enabled == true) {
 	playNote(A3);
+	}
 	delay(500);
+	if (sound_enabled == true) {
 	playNote(0);
+	}
 	fillRectangle(74,5,70,10,0);
 	printText("You've reached", 15, 20, RED, 0);
 	printTextX2(levels[currentLevel].levelName, 20, 40, RED, 0);
@@ -525,13 +551,17 @@ bool checkHighScore(){
 void printHighScore(){
 	clearAsteroids();
 	resetAsteroids();
+	if (sound_enabled == true) {
 	playNote(A3);
+	}
 	fillRectangle(74,5,70,10,0);
 	printText("Congratulations!!", 10, 20, RED, 0);
 	printText("New High Score", 15, 30, RED, 0);
 	printNumberX2(high_score, 30, 45, BLUE, 0);
 	delay(500);
+	if (sound_enabled == true) {
 	playNote(0);
+	}
 	delay(2000);
 	fillRectangle(10, 20, 120, 45, 0);
 }

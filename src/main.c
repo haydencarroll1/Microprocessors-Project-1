@@ -109,6 +109,10 @@ void setupGame() {
 
 
 void menu() {
+    // printTextX2("Welcome to", 5, 5, YELLOW, 0);
+    // printTextX2("Space", 32, 30, YELLOW, 0);
+    // printTextX2("Dodger", 28, 50, YELLOW, 0);
+    // printText("Dodge the Meteors", 5, 80, RED, 0);
     
 	menuInterface();
 
@@ -122,6 +126,10 @@ void menuInterface() {
     int menu_selection = 0;
 
     while (1) {
+		printTextX2("Welcome to", 5, 5, YELLOW, 0);
+    	printTextX2("Space", 32, 30, YELLOW, 0);
+    	printTextX2("Dodger", 28, 50, YELLOW, 0);
+    	printText("Dodge the Meteors", 5, 80, RED, 0);
         counter++;
         if (counter < 50) {
             printText("Press < or >", 23, 100, ORANGE, 0);

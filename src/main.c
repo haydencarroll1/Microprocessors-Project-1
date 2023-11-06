@@ -415,7 +415,8 @@ void gameCrashed() {
 		counter++;
 		if(counter < 50) {
 			printText("Press < or >", 23, 73, ORANGE, 0);
-			printText("Press V to quit", 10, 105, ORANGE, 0);
+			printText("Press V to return", 3, 105, ORANGE, 0);
+			printText("to main menu", 10, 115, ORANGE, 0);
 		}
 		else if(counter<80) {
 			fillRectangle(20, 73, 100, 10, 0);
@@ -430,11 +431,12 @@ void gameCrashed() {
 		else if((GPIOA->IDR & (1 << 11)) == 0)
 		{
 			clear();
-			printText("Thank you for", 18, 5, BLUE, 0);
-			printText("playing", 37, 15, BLUE, 0);
-			printTextX2("Space", 32, 30, YELLOW, 0);
-			printTextX2("Dodger", 28, 50, YELLOW, 0);
-			break;
+			menu();
+			// printText("Thank you for", 18, 5, BLUE, 0);
+			// printText("playing", 37, 15, BLUE, 0);
+			// printTextX2("Space", 32, 30, YELLOW, 0);
+			// printTextX2("Dodger", 28, 50, YELLOW, 0);
+			// break;
 		}
 		delay(12);
 	}

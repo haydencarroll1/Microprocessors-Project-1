@@ -226,11 +226,33 @@ void menuInterface() {
                     menu_selection = 0; // Set menu selection back to Play
                     break;
                 case 2:
+    // Handle settings (Settings option)
 					clear();
-                    break;
+
+					int sound_option = sound_enabled; // Initialize the sound option with the current sound state
+
+					while (1) {
+						printText("Sound Settings", 5, 50, YELLOW, 0);
+						printText("- Sound On", 5, 80, sound_option == 1 ? RED : BLUE, 0);
+						printText("- Sound Off", 5, 100, sound_option == 0 ? RED : BLUE, 0);
+						printText("Press < or > to choose", 5, 150, ORANGE, 0);
+
+						if ((GPIOA->IDR & (1 << 11)) == 0 || (GPIOA->IDR & (1 << 8)) == 0) {
+							// Toggle the sound option
+							delay(150);
+							sound_option = 1 - sound_option;
+							delay(100);
+						}
+
+						if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
+							// Save the selected sound setting
+							sound_enabled = sound_option;
+							clear();
+							break;
+						}
+   				 }
             }
         }
-
         delay(50);
     }
 }

@@ -120,66 +120,105 @@ void menu() {
     gameLoop();
 }
 
-void menuInterface(){
-	int counter = 0;
-	int menu_selection = 0;
+void menuInterface() {
+    int counter = 0;
+    int menu_selection = 0;
 
-	while(true){
+    while (1) {
         counter++;
-        if(counter < 50) {
+        if (counter < 50) {
             printText("Press < or >", 23, 100, ORANGE, 0);
-        }
-        else if(counter < 80) {
+        } else if (counter < 80) {
             fillRectangle(23, 100, 210, 10, 0);
-        }
-        else {
+        } else {
             counter = 0;
         }
 
-		if(menu_selection == 0)
-		{
-			printText("- Play", 5, 112, RED, 0);
-			printText("- Difficulty", 5, 124, BLUE, 0);
-			printText("- Settings", 5, 136, BLUE, 0);
-		}
-		else if(menu_selection == 1)
-		{
-			printText("- Play", 5, 112, BLUE, 0);
-			printText("- Difficulty", 5, 124, RED, 0);
-			printText("- Settings", 5, 136, BLUE, 0);
-		}
-		else if(menu_selection == 2)
-		{
-			printText("- Play", 5, 112, BLUE, 0);
-			printText("- Difficulty", 5, 124, BLUE, 0);
-			printText("- Settings", 5, 136, RED, 0);
-		}
+        // Display menu options
+        printText("- Play", 5, 112, menu_selection == 0 ? RED : BLUE, 0);
+        printText("- Difficulty", 5, 124, menu_selection == 1 ? RED : BLUE, 0);
+        printText("- Settings", 5, 136, menu_selection == 2 ? RED : BLUE, 0);
 
-        // Detect button press restart
-        if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
-            break;
+        // Detect button press to navigate the menu
+        if ((GPIOA->IDR & (1 << 11)) == 0) {
+            if (menu_selection < 2) {
+                menu_selection++;
+                delay(50);
+            } else {
+                menu_selection = 0;
+                delay(50);
+            }
+        } else if ((GPIOA->IDR & (1 << 8)) == 0) {
+            if (menu_selection > 0) {
+                menu_selection--;
+                delay(50);
+            } else {
+                menu_selection = 2;
+                delay(50);
+            }
         }
 
-		if ( (GPIOA->IDR & (1 << 11)) == 0) {
-			if(menu_selection < 2){
-				menu_selection++;
-				delay(50);
-			}
-			else{
-				menu_selection = 0;
-				delay(50);
-			}
-		} // down pressed
-		else if ( (GPIOA->IDR & (1 << 8)) == 0) {
-			if(menu_selection > 0){
-				menu_selection--;
-				delay(50);
-			}
-			else{
-				menu_selection = 2;
-				delay(50);
-			}
-		} // up pressed
+        // Detect button press to select an option
+        if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
+            switch (menu_selection) {
+                case 0:
+                    // Start the game (Play option)
+                    clear();
+                    delay(20);
+                    gameLoop();
+                    return;
+                case 1:
+                    // Handle difficulty settings
+                    clear();
+                    int difficulty_selection = 0;
+
+                    while (1) {
+                        printText("Select Difficulty", 5, 50, YELLOW, 0);
+                        printText("- Easy", 5, 80, difficulty_selection == 0 ? RED : BLUE, 0);
+                        printText("- Normal", 5, 100, difficulty_selection == 1 ? RED : BLUE, 0);
+                        printText("- Hard", 5, 120, difficulty_selection == 2 ? RED : BLUE, 0);
+                        printText("Press < or > to choose", 5, 150, ORANGE, 0);
+
+                        if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
+                            // Save the selected difficulty and update game settings
+                            switch (difficulty_selection) {
+                                case 0:
+                                    // Set game difficulty to Easy
+									currentLevel = 0;
+                                    break;
+                                case 1:
+                                    // Set game difficulty to Normal
+									currentLevel = 2;
+                                    break;
+                                case 2:
+                                    // Set game difficulty to Hard
+									currentLevel = 4;
+                                    break;
+                            }
+                            break;
+                        }
+
+                        if ((GPIOA->IDR & (1 << 11)) == 0) {
+                            if (difficulty_selection < 2) {
+                                difficulty_selection++;
+                                delay(50);
+                            }
+                        } else if ((GPIOA->IDR & (1 << 8)) == 0) {
+                            if (difficulty_selection > 0) {
+                                difficulty_selection--;
+                                delay(50);
+                            }
+                        }
+                    }
+
+                    // After setting the difficulty, return to the main menu
+                    menu_selection = 0; // Set menu selection back to Play
+                    break;
+                case 2:
+                    // Handle settings (Settings option)
+                    break;
+            }
+        }
 
         delay(50);
     }
@@ -230,8 +269,6 @@ void gameLoop() {
 	number_of_asteroids = 1;
 	bool game_running = true;
 	bool new_high_score = false;
-
-	currentLevel = 8;
 
 	rocket_x = 53;
 	rocket_y = 120;

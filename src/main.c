@@ -128,8 +128,6 @@ void menuInterface(){
         counter++;
         if(counter < 50) {
             printText("Press < or >", 23, 100, ORANGE, 0);
-			printText("Choose difficulty", 23, 105, ORANGE, 0);
-			printText("Settings", 23, 110, ORANGE, 0);
         }
         else if(counter < 80) {
             fillRectangle(23, 100, 210, 10, 0);
@@ -137,6 +135,25 @@ void menuInterface(){
         else {
             counter = 0;
         }
+
+		if(menu_selection == 0)
+		{
+			printText("- Play", 5, 112, RED, 0);
+			printText("- Difficulty", 5, 124, BLUE, 0);
+			printText("- Settings", 5, 136, BLUE, 0);
+		}
+		else if(menu_selection == 1)
+		{
+			printText("- Play", 5, 112, BLUE, 0);
+			printText("- Difficulty", 5, 124, RED, 0);
+			printText("- Settings", 5, 136, BLUE, 0);
+		}
+		else if(menu_selection == 2)
+		{
+			printText("- Play", 5, 112, BLUE, 0);
+			printText("- Difficulty", 5, 124, BLUE, 0);
+			printText("- Settings", 5, 136, RED, 0);
+		}
 
         // Detect button press restart
         if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
@@ -146,13 +163,25 @@ void menuInterface(){
 		if ( (GPIOA->IDR & (1 << 11)) == 0) {
 			if(menu_selection < 2){
 				menu_selection++;
+				delay(50);
 			}
 			else{
 				menu_selection = 0;
+				delay(50);
 			}
 		} // down pressed
+		else if ( (GPIOA->IDR & (1 << 8)) == 0) {
+			if(menu_selection > 0){
+				menu_selection--;
+				delay(50);
+			}
+			else{
+				menu_selection = 2;
+				delay(50);
+			}
+		} // up pressed
 
-        delay(10);
+        delay(50);
     }
 }
 

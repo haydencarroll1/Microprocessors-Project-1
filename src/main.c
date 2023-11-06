@@ -32,6 +32,7 @@ void levelUp();
 void resetAsteroids();
 bool checkHighScore();
 void printHighScore();
+void handleSettings();
 
 struct Asteroid{
     uint16_t x;
@@ -108,10 +109,6 @@ void setupGame() {
 
 
 void menu() {
-    printTextX2("Welcome to", 5, 5, YELLOW, 0);
-    printTextX2("Space", 32, 30, YELLOW, 0);
-    printTextX2("Dodger", 28, 50, YELLOW, 0);
-    printText("Dodge the Meteors", 5, 80, RED, 0);
     
 	menuInterface();
 
@@ -143,23 +140,24 @@ void menuInterface() {
         if ((GPIOA->IDR & (1 << 11)) == 0) {
             if (menu_selection < 2) {
                 menu_selection++;
-                delay(50);
+                delay(200);
             } else {
                 menu_selection = 0;
-                delay(50);
+                delay(200);
             }
         } else if ((GPIOA->IDR & (1 << 8)) == 0) {
             if (menu_selection > 0) {
                 menu_selection--;
-                delay(50);
+                delay(200);
             } else {
                 menu_selection = 2;
-                delay(50);
+                delay(200);
             }
         }
 
         // Detect button press to select an option
         if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
+			delay(100);
             switch (menu_selection) {
                 case 0:
                     // Start the game (Play option)
@@ -201,21 +199,23 @@ void menuInterface() {
                         if ((GPIOA->IDR & (1 << 11)) == 0) {
                             if (difficulty_selection < 2) {
                                 difficulty_selection++;
-                                delay(50);
+                                delay(100);
                             }
                         } else if ((GPIOA->IDR & (1 << 8)) == 0) {
                             if (difficulty_selection > 0) {
                                 difficulty_selection--;
-                                delay(50);
+                                delay(150);
                             }
                         }
                     }
 
                     // After setting the difficulty, return to the main menu
+					clear();
                     menu_selection = 0; // Set menu selection back to Play
                     break;
                 case 2:
                     // Handle settings (Settings option)
+					clear();
                     break;
             }
         }

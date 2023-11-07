@@ -33,7 +33,7 @@ void levelUp();
 void resetAsteroids();
 bool checkHighScore();
 void printHighScore();
-void srand(unsigned int seed);
+
 
 struct Asteroid{
     uint16_t x;

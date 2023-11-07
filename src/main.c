@@ -169,7 +169,7 @@ void menuInterface() {
 
         // Detect button press to select an option
         if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
-			delay(100);
+			delay(150);
             switch (menu_selection) {
                 case 0:
                     // Start the game (Play option)
@@ -187,21 +187,18 @@ void menuInterface() {
                         printText("- Easy", 5, 80, difficulty_selection == 0 ? RED : BLUE, 0);
                         printText("- Normal", 5, 100, difficulty_selection == 1 ? RED : BLUE, 0);
                         printText("- Hard", 5, 120, difficulty_selection == 2 ? RED : BLUE, 0);
-                        printText("Press < or > to choose", 5, 150, ORANGE, 0);
+                        printText("< or > to select", 5, 150, ORANGE, 0);
 
                         if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
                             // Save the selected difficulty and update game settings
                             switch (difficulty_selection) {
                                 case 0:
-                                    // Set game difficulty to Easy
 									currentLevel = 0;
                                     break;
                                 case 1:
-                                    // Set game difficulty to Normal
 									currentLevel = 2;
                                     break;
                                 case 2:
-                                    // Set game difficulty to Hard
 									currentLevel = 4;
                                     break;
                             }
@@ -225,8 +222,7 @@ void menuInterface() {
 					clear();
                     menu_selection = 0; // Set menu selection back to Play
                     break;
-                case 2:
-    // Handle settings (Settings option)
+                case 2: // Handle settings (Settings option)
 					clear();
 
 					int sound_option = sound_enabled; // Initialize the sound option with the current sound state
@@ -235,7 +231,7 @@ void menuInterface() {
 						printText("Sound Settings", 5, 50, YELLOW, 0);
 						printText("- Sound On", 5, 80, sound_option == 1 ? RED : BLUE, 0);
 						printText("- Sound Off", 5, 100, sound_option == 0 ? RED : BLUE, 0);
-						printText("Press < or > to choose", 5, 150, ORANGE, 0);
+						printText("< or > to select", 5, 150, ORANGE, 0);
 
 						if ((GPIOA->IDR & (1 << 11)) == 0 || (GPIOA->IDR & (1 << 8)) == 0) {
 							// Toggle the sound option
@@ -359,11 +355,11 @@ void gameLoop() {
 
 void initAsteroids() {
     for (int i = 0; i < MAX_ASTEROIDS; i++) {
-        asteroids[i].x = 5 + random(1,10) * 12; // Random X position
+        asteroids[i].x = 5 + randomss(1,10) * 12; // Random X position
 		int j;
 		for(j; j < MAX_ASTEROIDS; j++) {
 			if(asteroids[i].x == asteroids[j].x) {
-				asteroids[i].x = 3 + (random(0,10) * 12);
+				asteroids[i].x = 3 + (randomss(0,10) * 12);
 				j = 0;
 			}
 		}
@@ -388,7 +384,7 @@ void updateAsteroids() {
     for (int i = 0; i < number_of_asteroids; i++) {
         asteroids[i].y += asteroids[i].speed;
 
-		if (asteroids[i].y > number_of_asteroids * (random(200/currentLevelInfo.numAsteroids,400/currentLevelInfo.numAsteroids)) && number_of_asteroids < currentLevelInfo.numAsteroids){
+		if (asteroids[i].y > number_of_asteroids * (randomss(200/currentLevelInfo.numAsteroids,400/currentLevelInfo.numAsteroids)) && number_of_asteroids < currentLevelInfo.numAsteroids){
 			number_of_asteroids++;
 		}
         // If asteroid goes off the screen, respawn it at the top
@@ -399,10 +395,10 @@ void updateAsteroids() {
 			score++;
 			printNumber(score, 5, 5, BLUE, 0);
 			fillRectangle(asteroids[i].x, asteroids[i].y - asteroids[i].speed, 10, 10, 0);
-			asteroids[i].x = 3 + random(0,10) * 12;
+			asteroids[i].x = 3 + randomss(0,10) * 12;
 			for(int j = 0; j < currentLevelInfo.numAsteroids; j++) {
 				if(asteroids[i].x == asteroids[j].x && i != j) {
-					asteroids[i].x = 3 + random(0,10) * 12;
+					asteroids[i].x = 3 + randomss(0,10) * 12;
 					j = 0;
 				}
 			}
@@ -504,7 +500,7 @@ void gameCrashed() {
 		if(counter < 50) {
 			printText("Press < or >", 23, 73, ORANGE, 0);
 			printText("Press V to return", 3, 105, ORANGE, 0);
-			printText("to main menu", 10, 115, ORANGE, 0);
+			printText("to main menu", 15, 115, ORANGE, 0);
 		}
 		else if(counter<80) {
 			fillRectangle(20, 73, 100, 10, 0);

@@ -40,6 +40,7 @@ struct Asteroid{
     uint16_t x;
 	uint16_t y;
 	uint16_t speed;
+	uint16_t asteroid_type;
 };
 
 // Define level information
@@ -69,7 +70,7 @@ struct Level levels[] = {
 
 int currentLevel; // Initializes the game level variable 
 
-int goldenAsteroidFrequency = 50; // Adjust the frequency as needed
+int goldenAsteroidFrequency = 10; // Adjust the frequency as needed
 bool goldenAsteroidGenerated = false;
 
 bool sound_enabled = true; // Initialize sound to be on
@@ -88,6 +89,10 @@ const uint16_t explosion[]= {
 };
 const uint16_t asteroid[]= {
 0,0,50473,50473,33560,33560,50473,50473,0,0,0,50473,9513,9513,33560,57608,57608,33560,50473,0,50473,57608,9513,9249,49944,9249,16912,57608,50473,50473,50473,9513,16912,49944,0,49944,49944,9249,57608,50473,33560,57608,57608,0,0,0,16912,9249,57608,33560,50473,57608,9249,49944,0,0,49944,57608,57608,33560,50473,33560,16912,58929,49944,49944,57608,57608,33560,50473,50473,33560,33560,26425,16912,9249,57608,33560,57608,50473,0,50473,33560,57608,33825,33560,33560,57608,50473,0,0,0,50473,50473,33560,33560,50473,50473,0,0,
+};
+
+const uint16_t goldenAsteroid[]= {
+	0,0,21306,21306,21306,21306,21306,21306,0,0,0,21306,21306,0,0,55355,40453,21306,21306,0,21306,21306,40453,0,0,24069,24069,24069,21306,21306,21306,40453,24069,40453,24069,40453,40453,40453,0,21306,3370,40453,24069,40453,55355,55355,55355,24069,24069,21306,21306,40453,24069,40453,24069,24069,55355,0,24069,21306,21306,0,0,40453,40453,40453,0,0,40453,21306,21306,21306,0,55355,55355,24069,24069,24334,21306,21306,0,21306,21306,24069,24069,24069,24334,21306,21306,0,0,0,21306,21306,21306,21306,21306,21306,0,0,
 };
 
 uint16_t high_score = 411;
@@ -368,6 +373,7 @@ void initAsteroids() {
 		}
         asteroids[i].y = 0; // Start at the top of the screen
         asteroids[i].speed = 2;
+		asteroids[i].asteroid_type = 0;
     }
 }
 
@@ -376,7 +382,7 @@ void drawAsteroids() {
 	struct Level currentLevelInfo = levels[currentLevel];
 	for(int i = 0; i < number_of_asteroids; i++) {
 		clearAsteroid(asteroids[i].x, asteroids[i].y - asteroids[i].speed);
-		putImage(asteroids[i].x, asteroids[i].y, 10, 10, asteroid, 0, 0); // Adjust the size and image as needed
+		putImage(asteroids[i].x, asteroids[i].y, 10, 10, asteroids[i].asteroid_type == 0 ? asteroid : goldenAsteroid, 0, 0); // Adjust the size and image as needed
 		printNumber(score, 5, 5, BLUE, 0);
 		printText(currentLevelInfo.levelName, 74, 5, BLUE, 0);
 	}
@@ -395,7 +401,15 @@ void updateAsteroids() {
 			if (sound_enabled == true) {
 			playNote(B4);
 			}
-			score++;
+			if(asteroids->asteroid_type == 1){
+				asteroids->asteroid_type = 0;
+				score += 50;
+			}
+			else{
+				score++;
+			}
+			generateGoldenAsteroid();
+			
 			printNumber(score, 5, 5, BLUE, 0);
 			fillRectangle(asteroids[i].x, asteroids[i].y - asteroids[i].speed, 10, 10, 0);
 			asteroids[i].x = 3 + randomss(0,10) * 12;
@@ -594,20 +608,22 @@ void adminMenu(){
 
 void generateGoldenAsteroid() {
     // Check if it's time to generate a golden asteroid
-    if (score % goldenAsteroidFrequency == 0 && !goldenAsteroidGenerated) {
+    if (score == goldenAsteroidFrequency) {
         int positionX = 3 + randomss(0, 10) * 12;
+		for(int j = 0; j < levels[j].numAsteroids; j++) {
+				if(positionX == asteroids[j].x) {
+					positionX = 3 + randomss(0,10) * 12;
+					j = 0;
+				}
+			}
         int positionY = 0;
-        int speed = 3; // Adjust the speed as needed for the golden asteroid
-        int asteroidType = 1; // Use a different type to represent golden asteroid
+        int speed = asteroids[0].speed; // Adjust the speed as needed for the golden asteroid
 
         asteroids[number_of_asteroids].x = positionX;
         asteroids[number_of_asteroids].y = positionY;
         asteroids[number_of_asteroids].speed = speed;
+		asteroids[number_of_asteroids].asteroid_type = 1;
 
-        // Display the golden asteroid differently
-        putImage(positionX, positionY, 10, 10, goldenAsteroid, 0, 0);
-
-        number_of_asteroids++;
         goldenAsteroidGenerated = true;
     }
 }

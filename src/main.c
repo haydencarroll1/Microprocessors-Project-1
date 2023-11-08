@@ -33,6 +33,7 @@ void levelUp();
 void resetAsteroids();
 bool checkHighScore();
 void printHighScore();
+void adminMenu();
 
 
 struct Asteroid{
@@ -68,6 +69,8 @@ struct Level levels[] = {
 
 int currentLevel; // Initializes the game level variable 
 
+int goldenAsteroidFrequency = 50; // Adjust the frequency as needed
+bool goldenAsteroidGenerated = false;
 
 bool sound_enabled = true; // Initialize sound to be on
 
@@ -582,4 +585,29 @@ void printHighScore(){
 	}
 	delay(2000);
 	fillRectangle(10, 20, 120, 45, 0);
+}
+
+// This function is called when the player presses the admin button within the settings sub-menu
+void adminMenu(){
+
+}
+
+void generateGoldenAsteroid() {
+    // Check if it's time to generate a golden asteroid
+    if (score % goldenAsteroidFrequency == 0 && !goldenAsteroidGenerated) {
+        int positionX = 3 + randomss(0, 10) * 12;
+        int positionY = 0;
+        int speed = 3; // Adjust the speed as needed for the golden asteroid
+        int asteroidType = 1; // Use a different type to represent golden asteroid
+
+        asteroids[number_of_asteroids].x = positionX;
+        asteroids[number_of_asteroids].y = positionY;
+        asteroids[number_of_asteroids].speed = speed;
+
+        // Display the golden asteroid differently
+        putImage(positionX, positionY, 10, 10, goldenAsteroid, 0, 0);
+
+        number_of_asteroids++;
+        goldenAsteroidGenerated = true;
+    }
 }

@@ -7,7 +7,7 @@
 #include "setup.h"
 
 #define MAX_ASTEROIDS 11
-#define MAX_ASTEROID_SPEED 13
+#define MAX_ASTEROID_SPEED 20
 
 #define YELLOW RGBToWord(246, 235, 20)
 #define GREEN RGBToWord(79, 175, 68)

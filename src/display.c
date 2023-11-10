@@ -6,7 +6,7 @@
 
 
 
-void clear(void);
+void clear_screen(void);
 static uint32_t mystrlen(const char *s);
 static void drawLineLowSlope(uint16_t x0, uint16_t y0, uint16_t x1,uint16_t y1, uint16_t Colour);
 static void drawLineHighSlope(uint16_t x0, uint16_t y0, uint16_t x1,uint16_t y1, uint16_t Colour);
@@ -614,7 +614,7 @@ void drawLineHighSlope(uint16_t x0, uint16_t y0, uint16_t x1,uint16_t y1, uint16
     D = D + 2*dx;
   }
 }
-void clear()
+void clear_screen()
 {
 	fillRectangle(0,0,SCREEN_WIDTH, SCREEN_HEIGHT, 0x0000);  // black out the screen
 }

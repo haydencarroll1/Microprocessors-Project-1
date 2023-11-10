@@ -1,13 +1,13 @@
 #include <stm32f031x6.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "display.h"
+#include <display.h>
 #include "prbs.h"
 #include "sound.h"
 #include "setup.h"
 
-#define MAX_ASTEROIDS 20
-#define MAX_ASTEROID_SPEED 10
+#define MAX_ASTEROIDS 11
+#define MAX_ASTEROID_SPEED 13
 
 #define YELLOW RGBToWord(246, 235, 20)
 #define GREEN RGBToWord(79, 175, 68)
@@ -18,6 +18,8 @@
 void setupGame();
 void menu();
 void menuInterface();
+void difficultySelection();
+void soundSelection();
 void initAsteroids();
 void updateAsteroids();
 void drawAsteroids();
@@ -33,7 +35,9 @@ void levelUp();
 void resetAsteroids();
 bool checkHighScore();
 void printHighScore();
-void adminMenu();
+void playSound(uint32_t Freq, int delay);
+void generateGoldenAsteroid(uint16_t index);
+void goldenAsteroidScreen();
 
 
 struct Asteroid{
@@ -58,22 +62,15 @@ struct Level {
 // Define an array of levels up to 5 levels
 struct Level levels[] = {
 	{5, 2, "Level 1", "N/A", 30, "Embarrassing...", 10},  // Level 1
-    {6, 3, "Level 2", "Think you're good?", 2, "Were you trying?", 10},  // Level 2
-    {7, 4, "Level 3", "Getting There!", 15, "Not the worst.", 15},  // Level 3
-	{7, 5, "Level 4", "This all you got?", 5, "Try again I guess", 1},  // Level 4
-	{7, 6, "Level 5", "Okay, not too bad", 5, "Not bad, go again", 5},  // Level 5
-	{7, 7, "Level 6", "This is crazy", 16, "I'm Impressed", 15},  // Level 6
-	{10, 8, "Level 7", "How???", 40, "You are quite good", 2},  // Level 7
-	{11, 9, "Level 8", "You're too good", 9, "Im getting worried", 2},  // Level 8 
-	{12, 10, "Level 9", "I'm very impressed!", 1, "That was Insane!!", 5},  // Level 9
+    {6, 4, "Level 2", "Think you're good?", 2, "Were you trying?", 10},  // Level 2
+    {7, 6, "Level 3", "Getting There!", 15, "Not the worst.", 15},  // Level 3
+	{7, 7, "Level 4", "This all you got?", 5, "Try again I guess", 1},  // Level 4
+	{7, 8, "Level 5", "Okay, not too bad", 5, "Not bad, go again", 5},  // Level 5
+	{7, 9, "Level 6", "This is crazy", 16, "I'm Impressed", 15},  // Level 6
+	{10, 10, "Level 7", "How???", 40, "You are quite good", 2},  // Level 7
+	{10, 13, "Level 8", "You're too good", 9, "Im getting worried", 2},  // Level 8 
+	{11, 16, "Level 9", "I'm very impressed!", 1, "That was Insane!!", 5},  // Level 9
 };
-
-int currentLevel; // Initializes the game level variable 
-
-int goldenAsteroidFrequency = 10; // Adjust the frequency as needed
-bool goldenAsteroidGenerated = false;
-
-bool sound_enabled = true; // Initialize sound to be on
 
 // Declare an array to store asteroids
 struct Asteroid asteroids[MAX_ASTEROIDS];
@@ -96,15 +93,20 @@ const uint16_t goldenAsteroid[]= {
 };
 
 uint16_t high_score = 411;
-
 uint16_t number_of_asteroids;
-
 uint16_t score = 0;
-
+uint16_t previous_score = 1;
 uint16_t rocket_x;
 uint16_t rocket_y;
 uint16_t old_rocket_x;
 uint16_t old_rocket_y;
+
+int currentLevel; // Initializes the game level variable 
+
+int goldenAsteroidFrequency = 150; // Adjust the frequency as needed
+bool goldenAsteroidGenerated = false;
+
+bool sound_enabled = true; // Initialize sound to be on
 
 int main() {
     setupGame();
@@ -122,7 +124,7 @@ void setupGame() {
 
 void menu() {
 	menuInterface();
-    clear();
+    clear_screen();
     delay(20);
     gameLoop();
 }
@@ -130,17 +132,16 @@ void menu() {
 void menuInterface() {
     int counter = 0;
     int menu_selection = 0;
-
     while (1) {
 		printTextX2("Welcome to", 5, 5, YELLOW, 0);
-    	printTextX2("Space", 32, 30, YELLOW, 0);
-    	printTextX2("Dodger", 28, 50, YELLOW, 0);
-    	printText("Dodge the Meteors", 5, 80, RED, 0);
+		printTextX2("Space", 32, 30, YELLOW, 0);
+		printTextX2("Dodger", 28, 50, YELLOW, 0);
+		printText("Dodge the Meteors", 5, 80, RED, 0);
         counter++;
         if (counter < 50) {
-            printText("Press < or >", 23, 100, ORANGE, 0);
-        } else if (counter < 80) {
-            fillRectangle(23, 100, 210, 10, 0);
+            printText("< or > to select", 8, 100, ORANGE, 0);
+        } else if (counter < 70) {
+            fillRectangle(8, 100, 210, 10, 0);
         } else {
             counter = 0;
         }
@@ -171,132 +172,165 @@ void menuInterface() {
 
         // Detect button press to select an option
         if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
-			delay(150);
             switch (menu_selection) {
                 case 0:
                     // Start the game (Play option)
-                    clear();
+                    clear_screen();
                     delay(20);
                     gameLoop();
                     return;
                 case 1:
-                    // Handle difficulty settings
-                    clear();
-                    int difficulty_selection = 0;
-
-                    while (1) {
-                        printText("Select Difficulty", 5, 50, YELLOW, 0);
-                        printText("- Easy", 5, 80, difficulty_selection == 0 ? RED : BLUE, 0);
-                        printText("- Normal", 5, 100, difficulty_selection == 1 ? RED : BLUE, 0);
-                        printText("- Hard", 5, 120, difficulty_selection == 2 ? RED : BLUE, 0);
-                        printText("< or > to select", 5, 150, ORANGE, 0);
-
-                        if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
-                            // Save the selected difficulty and update game settings
-                            switch (difficulty_selection) {
-                                case 0:
-									currentLevel = 0;
-                                    break;
-                                case 1:
-									currentLevel = 2;
-                                    break;
-                                case 2:
-									currentLevel = 4;
-                                    break;
-                            }
-                            break;
-                        }
-
-                        if ((GPIOA->IDR & (1 << 11)) == 0) {
-                            if (difficulty_selection < 2) {
-                                difficulty_selection++;
-                                delay(100);
-                            }
-                        } else if ((GPIOA->IDR & (1 << 8)) == 0) {
-                            if (difficulty_selection > 0) {
-                                difficulty_selection--;
-                                delay(150);
-                            }
-                        }
-                    }
-
-                    // After setting the difficulty, return to the main menu
-					clear();
+					delay(300);
+                    difficultySelection();
                     menu_selection = 0; // Set menu selection back to Play
                     break;
                 case 2: // Handle settings (Settings option)
-					clear();
+					delay(300);
+					clear_screen();
+					soundSelection();
+					menu_selection = 0; // Set menu selection back to Play
+   			}
+        }
+        
+        delay(10);
+    }
+}
 
-					int sound_option = sound_enabled; // Initialize the sound option with the current sound state
+void difficultySelection(){
+	// Handle difficulty settings
+	clear_screen();
+	int difficulty_selection = 0;
+	int counter = 0;
 
-					while (1) {
-						printText("Sound Settings", 5, 50, YELLOW, 0);
-						printText("- Sound On", 5, 80, sound_option == 1 ? RED : BLUE, 0);
-						printText("- Sound Off", 5, 100, sound_option == 0 ? RED : BLUE, 0);
-						printText("< or > to select", 5, 150, ORANGE, 0);
+	while (1) {
+		printText("Select Difficulty", 5, 20, YELLOW, 0);
+		printText("-Easy(Level 1)", 5, 40, difficulty_selection == 0 ? RED : BLUE, 0);
+		printText("-Normal(level 3)", 5, 55, difficulty_selection == 1 ? RED : BLUE, 0);
+		printText("-Hard(Level 5)", 5, 70, difficulty_selection == 2 ? RED : BLUE, 0);
+		printText("-Extreme(Level 8)", 5, 85, difficulty_selection == 3 ? RED : BLUE, 0);
+		counter++;
+        if (counter < 50) {
+            printText("< or > to select", 8, 140, ORANGE, 0);
+        } else if (counter < 80) {
+            fillRectangle(8, 140, 210, 10, 0);
+        } else {
+            counter = 0;
+        }
 
-						if ((GPIOA->IDR & (1 << 11)) == 0 || (GPIOA->IDR & (1 << 8)) == 0) {
-							// Toggle the sound option
-							delay(150);
-							sound_option = 1 - sound_option;
-							delay(100);
-						}
-
-						if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
-							// Save the selected sound setting
-							sound_enabled = sound_option;
-							clear();
+		if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
+			// Save the selected difficulty and update game settings
+			switch (difficulty_selection) {
+				case 0:
+					currentLevel = 0;
+					delay(200);
+					break;
+				case 1:
+					currentLevel = 2;
+					delay(200);
+					break;
+				case 2:
+					currentLevel = 4;
+					delay(200);
+					break;
+				case 3:
+					clear_screen();
+					delay(200);
+					while(1){
+						printTextX2("Are you", 20, 20, BLUE, 0);
+						printTextX2("sure?", 28, 40, BLUE, 0);
+						printText("< or > to confirm", 5, 80, ORANGE, 0);
+						printText("or V to go back", 10, 95, ORANGE, 0);
+						if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0){
+							currentLevel = 7;
 							break;
 						}
-   				 }
-            }
-        }
-        delay(50);
-    }
+						else if ((GPIOA->IDR & (1 << 11)) == 0) {
+							delay(100);
+							difficultySelection();
+							break;
+						}
+					}
+						
+			}
+			delay(300);
+			clear_screen();
+			delay(100);
+			break;
+		}
+
+		if ((GPIOA->IDR & (1 << 11)) == 0) {
+			if (difficulty_selection < 3) {
+				difficulty_selection++;
+				delay(200);
+			}
+		} else if ((GPIOA->IDR & (1 << 8)) == 0) {
+			if (difficulty_selection > 0) {
+				difficulty_selection--;
+				delay(200);
+			}
+		}
+
+		delay(10);
+	}
+
+	// After setting the difficulty, return to the main menu
+	clear_screen();
+}
+
+void soundSelection(){
+	int sound_option = sound_enabled; // Initialize the sound option with the current sound state
+
+	while (1) {
+		printTextX2("Sound", 28, 10, YELLOW, 0);
+		printTextX2("Settings", 18, 30, YELLOW, 0);
+		printText("- Sound On", 5, 55, sound_option == 1 ? RED : BLUE, 0);
+		printText("- Sound Off", 5, 65, sound_option == 0 ? RED : BLUE, 0);
+		printText("< or > to select", 5, 85, ORANGE, 0);
+
+		if ((GPIOA->IDR & (1 << 11)) == 0 || (GPIOA->IDR & (1 << 8)) == 0) {
+			// Toggle the sound option
+			sound_option = 1 - sound_option;
+			delay(200);
+		}
+
+		if ((GPIOB->IDR & (1 << 4)) == 0 || (GPIOB->IDR & (1 << 5)) == 0) {
+			// Save the selected sound setting
+			sound_enabled = sound_option;
+			delay(300);
+			clear_screen();
+			delay(100);
+			break;
+		}
+	}
 }
 
 
 void countdown() {
-	clear();
+	clear_screen();
 
 	for(int i = 0; i < 4; i++){
 		if(i == 0) {
 			printTextX2("3", 58, 40, RED, 0);
-			if (sound_enabled == true) {
-			playNote(E3);
-			}
+			playSound(E3, 200);
 		}
 		else if(i == 1) {
 			printTextX2("2", 58, 40, RED, 0);
-			if (sound_enabled == true) {
-			playNote(F3);
-			}
+			playSound(F3, 200);
 		}
 		else if(i == 2) {
 			printTextX2("1", 58, 40, RED, 0);
-			if (sound_enabled == true) {
-			playNote(G3);
-			}
+			playSound(G3, 200);
 		}
 		else if(i == 3) {
-			clear();
+			clear_screen();
 			printTextX2("DODGE!", 30, 40, RED, 0);
-			if (sound_enabled == true) {
-			playNote(D3);
-			}
+			playSound(D3, 700);
 			break;
-		}
-		delay(200);
-		if (sound_enabled == true) {
-		playNote(0);
 		}
 		delay(800);
 	}
 	delay(500);
-	if (sound_enabled == true) {
-	playNote(0);
-	}
-	clear();
+	clear_screen();
 }
 
 void gameLoop() {
@@ -308,7 +342,6 @@ void gameLoop() {
 
 	struct Level currentLevelInfo;
 	score = 0;
-	uint16_t previous_score = 1;
 	number_of_asteroids = 1;
 	bool game_running = true;
 	bool new_high_score = false;
@@ -357,11 +390,11 @@ void gameLoop() {
 
 void initAsteroids() {
     for (int i = 0; i < MAX_ASTEROIDS; i++) {
-        asteroids[i].x = 5 + randomss(1,10) * 12; // Random X position
+        asteroids[i].x = randomss(1,11) * 11; // Random X position
 		int j;
-		for(j; j < MAX_ASTEROIDS; j++) {
-			if(asteroids[i].x == asteroids[j].x) {
-				asteroids[i].x = 3 + (randomss(0,10) * 12);
+		for(j = 0; j < MAX_ASTEROIDS; j++) {
+			if(asteroids[i].x == asteroids[j].x && i != j) {
+				asteroids[i].x = (randomss(0,11) * 11);
 				j = 0;
 			}
 		}
@@ -392,27 +425,30 @@ void updateAsteroids() {
 		}
         // If asteroid goes off the screen, respawn it at the top
         if (asteroids[i].y > 150) {
-			if (sound_enabled == true) {
-			playNote(B4);
-			}
-			if(asteroids->asteroid_type == 1){
-				asteroids->asteroid_type = 0;
+			if(asteroids[i].asteroid_type == 1){
+				asteroids[i].asteroid_type = 0;
 				score += 50;
+				if(currentLevel < 9){
+					currentLevel++;
+				}
+				goldenAsteroidScreen();
+				break;
 			}
 			else{
 				score++;
 			}
-			generateGoldenAsteroid();
+			generateGoldenAsteroid(i);
 			
 			printNumber(score, 5, 5, BLUE, 0);
 			fillRectangle(asteroids[i].x, asteroids[i].y - asteroids[i].speed, 10, 10, 0);
-			asteroids[i].x = 3 + randomss(0,10) * 12;
+			asteroids[i].x = randomss(0,11) * 11;
 			for(int j = 0; j < currentLevelInfo.numAsteroids; j++) {
 				if(asteroids[i].x == asteroids[j].x && i != j) {
-					asteroids[i].x = 3 + randomss(0,10) * 12;
+					asteroids[i].x = randomss(0,11) * 11;
 					j = 0;
 				}
 			}
+			playSound(B4, 20);
 			asteroids[i].y = 0;
         }
 
@@ -485,15 +521,9 @@ void clearAsteroids() {
 
 // This function is called when the player crashes into asteroid, displays message asking to press < or > to restart
 void gameCrashed() {
-	clear();
+	clear_screen();
 	putImage(rocket_x,rocket_y,12,12,explosion,0,0);
-	if (sound_enabled == true) {
-	playNote(D2);
-	}
-	delay(1000);
-	if (sound_enabled == true) {
-	playNote(0);
-	}
+	playSound(D2, 1000);
 	printTextX2("You have", 15, 5, YELLOW, 0);
 	printTextX2("CRASHED", 20, 25, RED, 0);
 	printText("Final score:", 5, 45, BLUE, 0);
@@ -525,14 +555,9 @@ void gameCrashed() {
 		}
 		else if((GPIOA->IDR & (1 << 11)) == 0)
 		{
-			clear();
-			delay(1000);
+			clear_screen();
+			delay(100);
 			menu();
-			// printText("Thank you for", 18, 5, BLUE, 0);
-			// printText("playing", 37, 15, BLUE, 0);
-			// printTextX2("Space", 32, 30, YELLOW, 0);
-			// printTextX2("Dodger", 28, 50, YELLOW, 0);
-			// break;
 		}
 		delay(12);
 	}
@@ -546,18 +571,12 @@ void levelUp(){
 	resetAsteroids();
 	printNumber(score, 5, 5, BLUE, 0);
 	printText(levels[currentLevel].levelName, 74, 5, BLUE, 0);
-	if (sound_enabled == true) {
-	playNote(A3);
-	}
-	delay(500);
-	if (sound_enabled == true) {
-	playNote(0);
-	}
+	playSound(A3, 500);
 	fillRectangle(74,5,70,10,0);
 	printText("You've reached", 15, 20, RED, 0);
 	printTextX2(levels[currentLevel].levelName, 20, 40, RED, 0);
 	printText(levels[currentLevel].levelmessage, levels[currentLevel].levelScreenPosition, 70, ORANGE, 0);
-	delay(5000);
+	delay(4000);
 	printText(levels[currentLevel].levelName, 74, 5, BLUE, 0);
 	fillRectangle(1,10,150,100,0);
 	}
@@ -580,44 +599,50 @@ bool checkHighScore(){
 void printHighScore(){
 	clearAsteroids();
 	resetAsteroids();
-	if (sound_enabled == true) {
-	playNote(A3);
-	}
 	fillRectangle(74,5,70,10,0);
 	printText("Congratulations!!", 10, 20, RED, 0);
 	printText("New High Score", 15, 30, RED, 0);
 	printNumberX2(high_score, 30, 45, BLUE, 0);
-	delay(500);
-	if (sound_enabled == true) {
-	playNote(0);
-	}
-	delay(2000);
+	playSound(A3, 2000);
 	fillRectangle(10, 20, 120, 45, 0);
 }
 
-// This function is called when the player presses the admin button within the settings sub-menu
-void adminMenu(){
-
-}
-
-void generateGoldenAsteroid() {
+void generateGoldenAsteroid(uint16_t index) {
     // Check if it's time to generate a golden asteroid
     if (score == goldenAsteroidFrequency) {
-        int positionX = 3 + randomss(0, 10) * 12;
-		for(int j = 0; j < levels[j].numAsteroids; j++) {
-				if(positionX == asteroids[j].x) {
-					positionX = 3 + randomss(0,10) * 12;
-					j = 0;
-				}
-			}
-        int positionY = 0;
-        int speed = asteroids[0].speed; // Adjust the speed as needed for the golden asteroid
-
-        asteroids[number_of_asteroids].x = positionX;
-        asteroids[number_of_asteroids].y = positionY;
-        asteroids[number_of_asteroids].speed = speed;
-		asteroids[number_of_asteroids].asteroid_type = 1;
-
+		asteroids[index].asteroid_type = 1;
         goldenAsteroidGenerated = true;
+		playSound(A5, 20);
     }
+}
+
+void playSound(uint32_t Freq, int delay_time){
+	if(sound_enabled){
+		playNote(Freq);
+	}
+	delay(delay_time);
+	playNote(0);
+}
+
+void goldenAsteroidScreen(){
+	clear_screen();
+	resetAsteroids();
+	fillRectangle(74,5,70,10,0);
+	printText("Congratulations!!", 5, 10, YELLOW, 0);
+	printText("You found a", 22, 20, RED, 0);
+	printTextX2("Golden", 26, 30, YELLOW, 0);
+	printTextX2("Asteroid", 16, 50, YELLOW, 0);
+	printText("Level Up and", 19, 70, RED, 0);
+	printText("50 points!!", 21, 80, RED, 0);
+	playSound(A3, 150);
+	playSound(C4, 150);
+	playSound(B4, 150);
+	playSound(D5, 150);
+	printText("Updated Level:", 15, 100, BLUE, 0);
+	printTextX2(levels[currentLevel].levelName, 20, 110, BLUE, 0);
+	delay(5000);
+	clear_screen();
+	printText(levels[currentLevel].levelName, 74, 5, BLUE, 0);
+	putImage(rocket_x,rocket_y,12,16,rocket,0,0);
+	previous_score = score;
 }
